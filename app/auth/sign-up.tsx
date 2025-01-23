@@ -6,6 +6,7 @@ import InputField from '@/components/InputField';
 import Header from '@/components/Header';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { createUser } from '@/scripts/services/userService';
 
 const SignUpScreen: React.FC = () => {
     const router = useRouter();
@@ -30,30 +31,9 @@ const SignUpScreen: React.FC = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const createUser = async () => {
+    const callCreateUser = async () => {
         if (!validateInputs()) return;
-        setLoading(true);
-        try {
-            const requestOptions = {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, firstName, lastName, password }),
-            };
-            const response = await fetch('http://localhost:8080/api/users', requestOptions);
-            if (!response.ok) {
-                const errorMessage = await response.text();
-                Alert.alert('Error', errorMessage);
-                return;
-            }
-            const data = await response.json();
-            Alert.alert('Success', 'Account created successfully!');
-            router.push('../../main/dashboard');
-        } catch (error) {
-            console.error(error);
-            Alert.alert('Error', 'Something went wrong. Please try again.');
-        } finally {
-            setLoading(false);
-        }
+        await createUser(email, firstName, lastName, password, router, setLoading);
     };
 
     return (
@@ -62,35 +42,23 @@ const SignUpScreen: React.FC = () => {
                 <InputField
                     placeholder="Enter your email"
                     icon="mail"
-                    onChangeText={(text) => {
-                        setEmail(text);
-                        if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
-                    }}
+                    onChangeText={newText => setEmail(newText)}
                 />
                 <InputField
                     placeholder="Password"
                     icon="key"
                     secureTextEntry={true}
-                    onChangeText={(text) => {
-                        setPassword(text);
-                        if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
-                    }}
+                    onChangeText={newText => setPassword(newText)}
                 />
             <View style={styles.doubleTextFieldContainer}>
                     <InputField
                         placeholder="First Name"
-                        onChangeText={(text) => {
-                            setFirstName(text);
-                            if (errors.firstName) setErrors((prev) => ({ ...prev, firstName: undefined }));
-                        }}
+                        onChangeText={newText => setFirstName(newText)}
                         isSmall={true}
                     />
                     <InputField
                         placeholder="Last Name"
-                        onChangeText={(text) => {
-                            setLastName(text);
-                            if (errors.lastName) setErrors((prev) => ({ ...prev, lastName: undefined }));
-                        }}
+                        onChangeText={newText => setLastName(newText)}
                         isSmall={true}
                     />
             </View>
@@ -101,7 +69,7 @@ const SignUpScreen: React.FC = () => {
                 {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
             </ThemedView>
             <ThemedView style={styles.buttonContainer}>
-                <ButtonCTA onPress={createUser} title="Continue" disabled={loading} />
+                <ButtonCTA onPress={callCreateUser} title="Continue" disabled={loading} />
             </ThemedView>
         </ThemedView>
     );

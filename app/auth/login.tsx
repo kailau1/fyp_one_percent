@@ -1,4 +1,4 @@
-import { Image, StyleSheet, View, Text, TextInput, StyleProp, TextStyle } from 'react-native';
+import { StyleSheet,Text, } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import ButtonCTA from '@/components/ui/ButtonCTA';
@@ -6,41 +6,58 @@ import {useState} from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from 'react-native';
-
+import InputField from '@/components/InputField';
+import { loginUser } from '@/scripts/services/userService';
 
 export default function LoginScreen() {
     const router = useRouter();
     const colourScheme = useColorScheme();
     const iconColour = colourScheme === 'dark' ? '#fff' : '#000';
+
+    const [email, setEmail] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(false);
+    
+    const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+    
+    const validateInputs = () => {
+        const newErrors: typeof errors = {};
+        if (!email.trim()) newErrors.email = 'Email is required';
+        if (!password.trim()) newErrors.password = 'Password is required';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const callLoginUser = async () => {
+        if (!validateInputs()) return;
+        await loginUser(email, password, router, setLoading);
+    }
+
     return (
         <ThemedView style={styles.container}>
-            {/* Header section */}
             <ThemedView style={styles.headerContainer}>
                 <MaterialIcons name="arrow-back" size={28} color={iconColour} onPress={() => router.back()} style={styles.backIcon}/>
                 <ThemedText style={styles.title}>Enter Your Details</ThemedText> 
             </ThemedView>
-            <View style={styles.inputContainer}>
-            {/* Email Input */}
-            <MaterialIcons name="mail" size={20} color="#aaa" style={styles.icon} />
-            <TextInput
-                style={styles.textFieldLarge}
+            <InputField
                 placeholder="Enter your email"
-                placeholderTextColor="#aaa"
+                icon="mail"
+                onChangeText={newText => setEmail(newText)}
+
             />
-            </View>
-            <View style={styles.inputContainer}>
-            {/* Password Input */}  
-            <MaterialIcons name="key" size={20} color="#aaa" style={styles.icon} />
-            <TextInput
-                style={styles.textFieldLarge}
+            <InputField
                 placeholder="Password"
-                placeholderTextColor="#aaa"
+                icon="key"
                 secureTextEntry={true}
+                onChangeText={newText => setPassword(newText)}
+
             />
-            </View>
-            {/* CTA Button */}
+            <ThemedView style={styles.errorContainer}>
+                {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+                {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+            </ThemedView>
             <ThemedView style={styles.buttonContainer}>
-                <ButtonCTA onPress={() => console.log('Button Pressed')} title='Login' />
+                <ButtonCTA onPress={callLoginUser} title='Login' />
             </ThemedView>
         </ThemedView>
     );
@@ -56,7 +73,7 @@ const styles = StyleSheet.create({
     },
     backIcon: {
         position: 'absolute',
-        left: 10,
+        left: 0,
     },
     headerContainer: {
         flexDirection: 'row',
@@ -110,5 +127,15 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 0,
         marginBottom: '4%',
-      }
+    },
+    errorContainer: {
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        width: '90%',
+    },
+    errorText: {
+        color: 'red',
+        fontSize: 14,
+        marginTop: 5,
+    },
 });

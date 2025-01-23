@@ -10,6 +10,7 @@ export const createUser = async (
     password: string,
     router: Router, 
     setLoading: (loading: boolean) => void 
+
 ): Promise<void> => {
     setLoading(true);
     try {
@@ -38,3 +39,38 @@ export const createUser = async (
         setLoading(false);
     }
 };
+
+export const loginUser = async (
+    email: string,
+    password: string,
+    router: Router,
+    setLoading: (loading: boolean) => void
+): Promise<void> => {
+    setLoading(true);
+    try {
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+        };
+
+        const response = await fetch('http://localhost:8080/api/users/login', requestOptions);
+
+        if (!response.ok) {
+            const errorMessage = await response.text();
+            Alert.alert('Error', errorMessage);
+            return;
+        }
+
+        const data = await response.json();
+        Alert.alert('Success', 'Login successful!');
+
+        router.push('../../main/dashboard');
+    } catch {
+        Alert.alert('Error', 'Something went wrong. Please try again.');
+    } finally {
+        setLoading(false);
+    }
+
+
+}
