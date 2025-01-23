@@ -1,15 +1,15 @@
-// services/userService.ts
 import { Alert } from 'react-native';
 import { Router } from 'expo-router';
+import { User } from '@/context/UserContext';
 
-// Define the createUser function
 export const createUser = async (
     email: string,
     firstName: string,
     lastName: string,
     password: string,
     router: Router, 
-    setLoading: (loading: boolean) => void 
+    setLoading: (loading: boolean) => void,
+    setUser: (user: User | null) => void
 
 ): Promise<void> => {
     setLoading(true);
@@ -27,11 +27,10 @@ export const createUser = async (
             Alert.alert('Error', errorMessage);
             return;
         }
-
         const data = await response.json();
         Alert.alert('Success', 'Account created successfully!');
-
-        router.push('../../main/dashboard');
+        setUser(data);
+        router.push('../../main/dashboard?fresh=true');
     } catch (error) {
         console.error(error);
         Alert.alert('Error', 'Something went wrong. Please try again.');
@@ -44,8 +43,10 @@ export const loginUser = async (
     email: string,
     password: string,
     router: Router,
-    setLoading: (loading: boolean) => void
-): Promise<void> => {
+    setLoading: (loading: boolean) => void,
+    setUser: (user: User | null) => void
+
+): Promise<string | null> => {
     setLoading(true);
     try {
         const requestOptions = {
@@ -59,15 +60,18 @@ export const loginUser = async (
         if (!response.ok) {
             const errorMessage = await response.text();
             Alert.alert('Error', errorMessage);
-            return;
+            return 'Invalid email or password';
         }
 
         const data = await response.json();
+        console.log(data);
+        setUser(data);
         Alert.alert('Success', 'Login successful!');
 
         router.push('../../main/dashboard');
+        return null;
     } catch {
-        Alert.alert('Error', 'Something went wrong. Please try again.');
+        return 'Something went wrong. Please try again';
     } finally {
         setLoading(false);
     }

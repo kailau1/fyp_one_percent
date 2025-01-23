@@ -7,11 +7,13 @@ import Header from '@/components/Header';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { createUser } from '@/scripts/services/userService';
+import { useUser } from '@/context/UserContext';
 
 const SignUpScreen: React.FC = () => {
     const router = useRouter();
     const colourScheme = useColorScheme();
     const iconColour = colourScheme === 'dark' ? '#fff' : '#000';
+    const { setUser } = useUser();
 
     const [email, setEmail] = useState<string>('');
     const [firstName, setFirstName] = useState<string>('');
@@ -33,7 +35,7 @@ const SignUpScreen: React.FC = () => {
 
     const callCreateUser = async () => {
         if (!validateInputs()) return;
-        await createUser(email, firstName, lastName, password, router, setLoading);
+        await createUser(email, firstName, lastName, password, router, setLoading, setUser);
     };
 
     return (
@@ -63,10 +65,10 @@ const SignUpScreen: React.FC = () => {
                     />
             </View>
             <ThemedView style={styles.errorContainer}>
-                {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-                {errors.firstName && <Text style={styles.errorText}>{errors.firstName}</Text>}
-                {errors.lastName && <Text style={styles.errorText}>{errors.lastName}</Text>}
-                {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+                {errors.email && <Text style={styles.errorText}>* {errors.email}</Text>}
+                {errors.firstName && <Text style={styles.errorText}>* {errors.firstName}</Text>}
+                {errors.lastName && <Text style={styles.errorText}>* {errors.lastName}</Text>}
+                {errors.password && <Text style={styles.errorText}>* {errors.password}</Text>}
             </ThemedView>
             <ThemedView style={styles.buttonContainer}>
                 <ButtonCTA onPress={callCreateUser} title="Continue" disabled={loading} />

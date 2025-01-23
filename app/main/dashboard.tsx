@@ -5,7 +5,8 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import Divider from '@/components/ui/Divider';
 import { useState} from 'react';
-
+import { useUser} from '@/context/UserContext';
+import { useLocalSearchParams } from 'expo-router';
 
 export default function DashboardScreen() {
   const [habits, setHabits] = useState([
@@ -13,11 +14,15 @@ export default function DashboardScreen() {
       { id: 2, title: 'Morning Workout'},
       { id: 3, title: 'Read for 30 minutes'},
     ]);
+  const { user } = useUser();
+  const { fresh } = useLocalSearchParams();
+  const welcomeTitle = fresh === 'true' ? 'Welcome' : 'Welcome back,';
+
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText style={styles.welcomeText}>Welcome back,</ThemedText>
-      <ThemedText style={styles.nameThemedText}>[Name]</ThemedText>
+      <ThemedText style={styles.welcomeText}>{welcomeTitle}</ThemedText>
+      <ThemedText style={styles.nameText}>{user?.firstName}</ThemedText>
       <Divider />
 
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -60,7 +65,6 @@ export default function DashboardScreen() {
           </ThemedView>
         </ThemedView>
       </ScrollView>
-
       {/* Bottom Navigation */}
       <BottomNav />
     </ThemedView>
@@ -84,11 +88,12 @@ const styles = StyleSheet.create({
     marginTop: '10%',
     fontFamily: 'Comfortaa_400Regular',
   },
-  nameThemedText: {
+  nameText: {
     fontSize: 24,
     fontWeight: '700',
     textAlign: 'center',
     marginBottom: 20,
+    marginTop: '1%',
     fontFamily: 'Comfortaa_400Regular',
   },
   card: {

@@ -7,17 +7,19 @@ import { useColorScheme } from 'react-native';
 import InputField from '@/components/InputField';
 import { loginUser } from '@/scripts/services/userService';
 import  Header  from '@/components/Header';
+import { useUser } from '@/context/UserContext';
 
 export default function LoginScreen() {
     const router = useRouter();
     const colourScheme = useColorScheme();
     const iconColour = colourScheme === 'dark' ? '#fff' : '#000';
+    const { setUser } = useUser();
 
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     
-    const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+    const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string; }>({});
     
     const validateInputs = () => {
         const newErrors: typeof errors = {};
@@ -29,8 +31,11 @@ export default function LoginScreen() {
 
     const callLoginUser = async () => {
         if (!validateInputs()) return;
-        await loginUser(email, password, router, setLoading);
-    }
+        const errorMessage = await loginUser(email, password, router, setLoading, setUser);
+
+        if (errorMessage) {
+            setErrors((prev) => ({...prev, general: errorMessage }));
+    }}
 
     return (
         <ThemedView style={styles.container}>
@@ -47,8 +52,9 @@ export default function LoginScreen() {
                 onChangeText={newText => setPassword(newText)}
             />
             <ThemedView style={styles.errorContainer}>
-                {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-                {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+                {errors.email && <Text style={styles.errorText}>* {errors.email}</Text>}
+                {errors.password && <Text style={styles.errorText}>* {errors.password}</Text>}
+                {errors.general && <Text style={styles.errorText}>* {errors.general}</Text>}
             </ThemedView>
             <ThemedView style={styles.buttonContainer}>
                 <ButtonCTA onPress={callLoginUser} title='Login' />
