@@ -20,7 +20,7 @@ export const createUser = async (
             body: JSON.stringify({ email, firstName, lastName, password }),
         };
 
-        const response = await fetch('http://localhost:8080/api/users', requestOptions);
+        const response = await fetch('http://localhost:8084/api/users', requestOptions);
 
         if (!response.ok) {
             const errorMessage = await response.text();
@@ -55,7 +55,7 @@ export const loginUser = async (
             body: JSON.stringify({ email, password }),
         };
 
-        const response = await fetch('http://localhost:8080/api/users/login', requestOptions);
+        const response = await fetch('http://localhost:8084/api/users/login', requestOptions);
 
         if (!response.ok) {
             const errorMessage = await response.text();

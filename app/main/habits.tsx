@@ -1,18 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { ProgressBar } from 'react-native-paper';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import BottomNav from '@/components/ui/BottomNav';
+import { getUserHabits, createHabit } from '@/scripts/services/habitService';
+import { useUser } from '@/context/UserContext';
+
 
 export default function HabitsScreen() {
-  const [habits, setHabits] = useState([
-    { id: 1, title: 'Drink Water', completed: false, color: '#FFCDD2' },
-    { id: 2, title: 'Morning Workout', completed: false, color: '#C5CAE9' },
-    { id: 3, title: 'Read for 30 minutes', completed: false, color: '#C8E6C9' },
-  ]);
+  const { user } = useUser();
 
+  let colourCodes: Array<string> = ["#A7C7E7", "#B4E197", "#F8C8DC", "#D6A4E7", "#FDFD96", "#FFD1A9", "#AAF0D1", "#FAD1AF", "#E3D4FC", "#FCA3B7", "#AEEDEE"]
+
+  function getRandomColor () {
+    return colourCodes[Math.floor(Math.random() * colourCodes.length)];
+
+  }
+
+  const [habits, setHabits] = useState<Array<any>>([]);
+
+  useEffect(() => {
+    async function fetchHabits() {
+      if (user?.id) {
+        const userHabits = await getUserHabits(user.id);
+        setHabits(userHabits);
+      }
+    }
+    fetchHabits();
+  }, [user]);
+  
   const handleToggle = (id: number) => {
     setHabits((prev) =>
       prev.map((habit) =>
@@ -49,9 +67,9 @@ export default function HabitsScreen() {
         {habits.map((habit) => (
           <ThemedView
             key={habit.id}
-            style={[styles.habitContainer, { backgroundColor: habit.color }]}
+            style={[styles.habitContainer, { backgroundColor: getRandomColor() }]}
           >
-            <ThemedText style={styles.habitText}>{habit.title}</ThemedText>
+            <ThemedText style={styles.habitText}>{habit.habitName}</ThemedText>
             <Switch
               trackColor={{ false: '#E0E0E0', true: '#81C784' }}
               thumbColor={habit.completed ? '#4CAF50' : '#FFF'}

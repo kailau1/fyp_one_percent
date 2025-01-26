@@ -16,7 +16,7 @@ export default function DashboardScreen() {
     ]);
   const { user } = useUser();
   const { fresh } = useLocalSearchParams();
-  const welcomeTitle = fresh === 'true' ? 'Welcome' : 'Welcome back,';
+  const welcomeTitle = fresh === 'true' ? 'Welcome,' : 'Welcome back,';
 
 
   return (
