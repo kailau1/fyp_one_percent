@@ -20,7 +20,7 @@ export const createUser = async (
             body: JSON.stringify({ email, firstName, lastName, password }),
         };
 
-        const response = await fetch('http://localhost:8084/api/users', requestOptions);
+        const response = await fetch('http://localhost:8084/api/users/create', requestOptions);
 
         if (!response.ok) {
             const errorMessage = await response.text();

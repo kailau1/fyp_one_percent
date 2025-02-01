@@ -32,6 +32,13 @@ export const createHabit = async (
     }
 }
 
+let colourCodes: Array<string> = ["#A7C7E7", "#B4E197", "#F8C8DC", "#D6A4E7", "#FDFD96", "#FFD1A9", "#AAF0D1", "#FAD1AF", "#E3D4FC", "#FCA3B7", "#AEEDEE"]
+
+function getRandomColor () {
+    return colourCodes[Math.floor(Math.random() * colourCodes.length)];
+
+}
+
 export const getUserHabits = async (
     userId: string
 
@@ -42,7 +49,7 @@ export const getUserHabits = async (
             headers: { 'Content-Type': 'application/json' },
         }
 
-        const response = await fetch(`http://localhost:8084/api/habits/${userId}`, requestOptions);
+        const response = await fetch(`http://localhost:8084/api/habits/user/${userId}`, requestOptions);
 
         if (!response.ok) {
             const errorMessage = await response.text();
@@ -52,7 +59,12 @@ export const getUserHabits = async (
 
         const data = await response.json();
         console.log(data);
-        return data;
+
+        const habitsWithColours = data.map((habit: any) => {
+            return { ...habit, colour: getRandomColor() };
+        });
+
+        return habitsWithColours;
 
     } catch (error){
         console.error(error);
@@ -60,3 +72,49 @@ export const getUserHabits = async (
     }
 }
 
+export const completeHabit = async (
+    habitId: string
+
+): Promise<void> => {
+    try {
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        }
+
+        const response = await fetch(`http://localhost:8084/api/habits/completed/${habitId}`, requestOptions);
+
+        if (!response.ok) {
+            const errorMessage = await response.text();
+            console.log(errorMessage);
+            return;
+        }
+    } catch (error){
+        console.error(error);
+        console.log('Error', 'Something went wrong. Please try again.');
+    }
+
+}
+
+export const uncompleteHabit = async (
+    habitId: string
+
+): Promise<void> => {
+    try {
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        }
+
+        const response = await fetch(`http://localhost:8084/api/habits/uncomplete/${habitId}`, requestOptions);
+
+        if (!response.ok) {
+            const errorMessage = await response.text();
+            console.log(errorMessage);
+            return;
+        }
+    } catch (error) {
+        console.error(error);
+        console.log('Error', 'Something went wrong. Please try again.');
+    }
+}
