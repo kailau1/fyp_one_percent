@@ -51,7 +51,10 @@ export default function DashboardScreen() {
         <ThemedView style={styles.card}>
           <ThemedText style={styles.cardTitle}>Habits</ThemedText>
           {habits.map((habit) => (
+            <div>
               <ThemedText>{habit.title}</ThemedText>
+              <Divider />
+            </div>
           ))}
           <ThemedText style={styles.addButtonText}>+</ThemedText>
         </ThemedView>
