@@ -1,86 +1,86 @@
-import { Router } from 'expo-router';
+export interface Habit {
+    id: string;
+    habitName: string;
+    description: string;
+    completed: boolean;
+    colour: string;
+}
 
 export const createHabit = async (
     userId: string,
     habitName: string,
     description: string,
     complete: boolean,
-    router: Router
-
-): Promise<void> => {
+    colour: string,
+): Promise<Habit | null> => {
     try {
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, habitName, description, complete }),
-        }
+            body: JSON.stringify({ userId, habitName, description, complete, colour }),
+        };
 
-        const response = await fetch('http://localhost:8084/api/habits', requestOptions);
+        const response = await fetch('http://localhost:8084/api/habits/create', requestOptions);
 
         if (!response.ok) {
             const errorMessage = await response.text();
-            console.log(errorMessage);
-            return;
+            console.log('createHabit error:', errorMessage);
+            return null;
         }
 
         const data = await response.json();
-        console.log(data);
+        console.log('createHabit data:', data);
+        return data;
 
-    } catch (error){
-        console.error(error);
+    } catch (error) {
+        console.error('createHabit catch:', error);
         console.log('Error', 'Something went wrong. Please try again.');
+        return null;
     }
-}
-
-let colourCodes: Array<string> = ["#A7C7E7", "#B4E197", "#F8C8DC", "#D6A4E7", "#FDFD96", "#FFD1A9", "#AAF0D1", "#FAD1AF", "#E3D4FC", "#FCA3B7", "#AEEDEE"]
-
-function getRandomColor () {
-    return colourCodes[Math.floor(Math.random() * colourCodes.length)];
-
-}
+};
 
 export const getUserHabits = async (
-    userId: string
-
-): Promise<any> => {
+    userId: string,
+    setHabits: (habits: Habit[]) => void
+): Promise<Habit[]> => {
+    console.log('getUserHabits called with userId:', userId);
     try {
         const requestOptions = {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
-        }
+        };
 
         const response = await fetch(`http://localhost:8084/api/habits/user/${userId}`, requestOptions);
+        console.log('Response status:', response.status);
 
         if (!response.ok) {
             const errorMessage = await response.text();
-            console.log(errorMessage);
-            return;
+            console.log('getUserHabits error:', errorMessage);
+            return [];
         }
 
         const data = await response.json();
-        console.log(data);
+        console.log('getUserHabits data:', data);
+        setHabits(data);
 
-        const habitsWithColours = data.map((habit: any) => {
-            return { ...habit, colour: getRandomColor() };
-        });
-
+        const habitsWithColours = data.map((habit: any) => ({ ...habit }));
         return habitsWithColours;
 
-    } catch (error){
-        console.error(error);
+    } catch (error) {
+        console.error('getUserHabits catch:', error);
         console.log('Error', 'Something went wrong. Please try again.');
+        return [];
     }
-}
+};
 
 export const completeHabit = async (
     habitId: string
-
 ): Promise<void> => {
     try {
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-        }
+        };
 
         const response = await fetch(`http://localhost:8084/api/habits/completed/${habitId}`, requestOptions);
 
@@ -89,22 +89,21 @@ export const completeHabit = async (
             console.log(errorMessage);
             return;
         }
-    } catch (error){
+
+    } catch (error) {
         console.error(error);
         console.log('Error', 'Something went wrong. Please try again.');
     }
-
-}
+};
 
 export const uncompleteHabit = async (
     habitId: string
-
 ): Promise<void> => {
     try {
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-        }
+        };
 
         const response = await fetch(`http://localhost:8084/api/habits/uncomplete/${habitId}`, requestOptions);
 
@@ -113,8 +112,9 @@ export const uncompleteHabit = async (
             console.log(errorMessage);
             return;
         }
+
     } catch (error) {
         console.error(error);
         console.log('Error', 'Something went wrong. Please try again.');
     }
-}
+};

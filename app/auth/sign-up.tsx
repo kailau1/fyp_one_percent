@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Text, Alert } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import ButtonCTA from '@/components/ui/ButtonCTA';
-import InputField from '@/components/InputField';
-import Header from '@/components/Header';
+import InputFieldIcon from '@/components/InputFieldIcon';
+import Header from '@/components/Header-Sub';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { createUser } from '@/scripts/services/userService';
@@ -41,24 +41,24 @@ const SignUpScreen: React.FC = () => {
     return (
         <ThemedView style={styles.container}>
             <Header title="Enter Your Details" onBackPress={() => router.back()} iconColour={iconColour} />
-                <InputField
+                <InputFieldIcon
                     placeholder="Enter your email"
                     icon="mail"
                     onChangeText={newText => setEmail(newText)}
                 />
-                <InputField
+                <InputFieldIcon
                     placeholder="Password"
                     icon="key"
                     secureTextEntry={true}
                     onChangeText={newText => setPassword(newText)}
                 />
             <View style={styles.doubleTextFieldContainer}>
-                    <InputField
+                    <InputFieldIcon
                         placeholder="First Name"
                         onChangeText={newText => setFirstName(newText)}
                         isSmall={true}
                     />
-                    <InputField
+                    <InputFieldIcon
                         placeholder="Last Name"
                         onChangeText={newText => setLastName(newText)}
                         isSmall={true}

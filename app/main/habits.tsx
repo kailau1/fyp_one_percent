@@ -1,26 +1,17 @@
-import { useState, useEffect } from 'react';
 import { ScrollView, Switch, StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import BottomNav from '@/components/ui/BottomNav';
-import { getUserHabits, createHabit, completeHabit, uncompleteHabit } from '@/scripts/services/habitService';
+import {completeHabit, uncompleteHabit } from '@/scripts/services/habitService';
 import { ProgressBar } from 'react-native-paper';
 import { useUser } from '@/context/UserContext';
+import { useHabits } from '@/context/HabitsContext';
+import { useRouter } from 'expo-router';
 
 export default function HabitsScreen() {
   const { user } = useUser();
-
-  const [habits, setHabits] = useState<Array<any>>([]);
-
-  useEffect(() => {
-    async function fetchHabits() {
-      if (user?.id) {
-        const userHabits = await getUserHabits(user.id);
-        setHabits(userHabits || []);
-      }
-    }
-    fetchHabits();
-  }, [user]);
+  const router = useRouter();
+  const { habits, setHabits } = useHabits();
   
   const handleToggle = async (id: string, completed: boolean) => {
     setHabits((prevHabits) =>
@@ -40,12 +31,10 @@ export default function HabitsScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      {/* Header */}
       <ThemedView style={styles.header}>
         <ThemedText style={styles.headerText}>Your Habits</ThemedText>
-        <ThemedText style={styles.addButton}>+</ThemedText>
+        <ThemedText style={styles.addButton} onPress={() => router.push('./addHabits')}>+</ThemedText>
       </ThemedView>
-      {/* Progress Section */}
       <ThemedView style={styles.progressContainer}>
         <ThemedText style={styles.progressText}>
           {completedCount} of {habits.length} completed!
@@ -56,9 +45,7 @@ export default function HabitsScreen() {
           style={styles.progressBar}
         />
       </ThemedView>
-      {/* Habits List and Completed Today */}
       <ScrollView contentContainerStyle={styles.habitsList}>
-        {/* Habits List */}
         {habits.map((habit) => (
           <ThemedView
             key={habit.id}
@@ -73,7 +60,6 @@ export default function HabitsScreen() {
             />
           </ThemedView>
         ))}
-        {/* Completed Today Section */}
         <ThemedView style={styles.completedToday}>
           <ThemedText style={styles.completedText}>Completed Today</ThemedText>
           {habits
@@ -88,7 +74,6 @@ export default function HabitsScreen() {
             ))}
         </ThemedView>
       </ScrollView>
-      {/* Bottom Navigation */}
       <BottomNav />
     </ThemedView>
   );

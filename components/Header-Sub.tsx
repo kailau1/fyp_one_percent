@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     },
     backIcon: {
         position: 'absolute',
-        left: 0,
+        left: 10,
     },
     title: {
         textAlign: 'center',
