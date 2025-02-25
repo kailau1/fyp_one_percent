@@ -18,13 +18,11 @@ export default function DashboardScreen() {
   const { fresh } = useLocalSearchParams();
   const welcomeTitle = fresh === 'true' ? 'Welcome,' : 'Welcome back,';
 
-
   return (
     <ThemedView style={styles.container}>
       <ThemedText style={styles.welcomeText}>{welcomeTitle}</ThemedText>
       <ThemedText style={styles.nameText}>{user?.firstName}</ThemedText>
       <Divider />
-
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         {/* Tip of the Day */}
         <ThemedView style={styles.card}>

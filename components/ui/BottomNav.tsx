@@ -16,10 +16,10 @@ export default function BottomNav () {
                 <Image style={styles.navItemIcon} source={require('../../assets/images/dashboard.png')} />
                 <ThemedText style={styles.navItem}>Dashboard</ThemedText>
             </TouchableOpacity>
-            <ThemedView style={styles.navItemContainer}>
-                <Image style={styles.navItemIcon} source={require('../../assets/images/menu_book.png')} />
+            <TouchableOpacity style={styles.navItemContainer} onPress={() => router.push('../main/journals')}>
+                <Image style={styles.navItemIcon} source={require('../../assets/images/menu_book.png')}/>
                 <ThemedText style={styles.navItem}>Journal</ThemedText>
-            </ThemedView>
+            </TouchableOpacity>
                 <TouchableOpacity style={styles.navItemContainer} onPress={() => router.push('../main/habits')}>
                         <Image style={styles.navItemIcon} source={require('../../assets/images/fact_check.png')} />
                         <ThemedText style={styles.navItem} >Habits</ThemedText>

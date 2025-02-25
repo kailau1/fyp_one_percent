@@ -41,6 +41,7 @@ export default function RootLayout() {
             <Stack.Screen name="main/dashboard" options={{ headerShown: false }} />
             <Stack.Screen name="main/habits" options={{ headerShown: false }} />
             <Stack.Screen name="main/addHabits" options={{ headerShown: false }} />
+            <Stack.Screen name="main/journals" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
         </ThemeProvider>

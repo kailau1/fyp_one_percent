@@ -124,6 +124,7 @@ const styles = StyleSheet.create({
   habitsList: {
     paddingVertical: 10,
     paddingHorizontal: 20,
+    paddingBottom: '20%',
   },
   habitContainer: {
     flexDirection: 'row',
