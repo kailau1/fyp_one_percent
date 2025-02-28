@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontFamily: 'Comfortaa_400Regular',
         fontWeight: '500',
-        fontSize: 32,
+        fontSize: 29,
         marginTop: '14%',
         marginBottom: '3%',
         lineHeight: 36,

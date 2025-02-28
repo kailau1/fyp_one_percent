@@ -4,6 +4,7 @@ import BottomNav from '@/components/ui/BottomNav';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import Divider from '@/components/ui/Divider';
+import { useRouter } from 'expo-router';
 
 export default function JournalScreen() {
   const [entries, setEntries] = useState([
@@ -11,6 +12,8 @@ export default function JournalScreen() {
     { id: 2, date: '14th January 2025', content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras sit amet ornare metus...' },
     { id: 3, date: '13th January 2025', content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras sit amet ornare metus...' },
   ]);
+
+  const router = useRouter()
 
   return (
     <ThemedView style={styles.container}>
@@ -27,7 +30,7 @@ export default function JournalScreen() {
         <ThemedText style={styles.subHeader}>Start a New Journal</ThemedText> 
         <Divider />
         <ThemedView style={styles.journalOptions}>
-            <TouchableOpacity style={[styles.optionButton, styles.unguided]}>
+            <TouchableOpacity style={[styles.optionButton, styles.unguided]} onPress={() => router.push('./journalEntry')}>
                 <ThemedText style={styles.optionText}>Blank Page</ThemedText>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.optionButton, styles.guided]}>

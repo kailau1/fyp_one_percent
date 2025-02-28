@@ -9,6 +9,7 @@ import 'react-native-reanimated';
 import { UserProvider } from '@/context/UserContext';
 import { HabitsProvider} from '@/context/HabitsContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { JournalsProvider } from '@/context/JournalsContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -33,6 +34,7 @@ export default function RootLayout() {
   return (
     <UserProvider>
       <HabitsProvider>
+        <JournalsProvider>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
@@ -42,9 +44,11 @@ export default function RootLayout() {
             <Stack.Screen name="main/habits" options={{ headerShown: false }} />
             <Stack.Screen name="main/addHabits" options={{ headerShown: false }} />
             <Stack.Screen name="main/journals" options={{ headerShown: false }} />
+            <Stack.Screen name="main/journalEntry" options = {{ headerShown: false}} />
             <Stack.Screen name="+not-found" />
           </Stack>
         </ThemeProvider>
+        </JournalsProvider>
       </HabitsProvider>
     </UserProvider>
     
