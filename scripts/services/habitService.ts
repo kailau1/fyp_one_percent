@@ -118,3 +118,32 @@ export const uncompleteHabit = async (
         console.log('Error', 'Something went wrong. Please try again.');
     }
 };
+
+export const updateHabit = async (
+    Habit: Habit
+): Promise<Habit | null> => {
+    try {
+        console.log('updateHabit called with:', Habit);
+        const requestOptions = {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({Habit}),
+        };
+
+        const response = await fetch(`http://localhost:8084/api/habits/update`, requestOptions);
+
+        if (!response.ok) {
+            const errorMessage = await response.text();
+            console.log(errorMessage);
+            return null;
+        }
+
+        const data = await response.json();
+        return data;
+
+    } catch (error) {
+        console.error(error);
+        console.log('Error', 'Something went wrong. Please try again.');
+        return null;
+    }
+}

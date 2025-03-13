@@ -24,14 +24,12 @@ export default function DashboardScreen() {
       <ThemedText style={styles.nameText}>{user?.firstName}</ThemedText>
       <Divider />
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        {/* Tip of the Day */}
         <ThemedView style={styles.card}>
           <ThemedText style={styles.cardTitle}>Tip of the Day</ThemedText>
           <ThemedText style={styles.tipText}>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras sit amet ornare metus.
           </ThemedText>
         </ThemedView>
-        {/* Journal Options */}
         <ThemedView style={[styles.card]}>
           <ThemedText style={styles.cardTitle}>
             How do you want to journal today?
@@ -45,7 +43,6 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           </ThemedView>
         </ThemedView>
-        {/* Habits Section */}
         <ThemedView style={styles.card}>
           <ThemedText style={styles.cardTitle}>Habits</ThemedText>
           {habits.map((habit) => (
@@ -56,8 +53,6 @@ export default function DashboardScreen() {
           ))}
           <ThemedText style={styles.addButtonText}>+</ThemedText>
         </ThemedView>
-
-        {/* Progress Overview */}
         <ThemedView style={styles.card}>
           <ThemedText style={styles.cardTitle}>Progress Overview</ThemedText>
           <ThemedView style={styles.progressContainer}>
@@ -66,7 +61,6 @@ export default function DashboardScreen() {
           </ThemedView>
         </ThemedView>
       </ScrollView>
-      {/* Bottom Navigation */}
       <BottomNav />
     </ThemedView>
   );

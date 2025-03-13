@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, View } from 'react-native';
 import BottomNav from '@/components/ui/BottomNav';
 import { ThemedView } from '@/components/ThemedView';
@@ -6,37 +6,67 @@ import { ThemedText } from '@/components/ThemedText';
 import Divider from '@/components/ui/Divider';
 import { useRouter } from 'expo-router';
 
-export default function JournalScreen() {
-  const [entries, setEntries] = useState([
-    { id: 1, date: '15th January 2025', content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras sit amet ornare metus...' },
-    { id: 2, date: '14th January 2025', content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras sit amet ornare metus...' },
-    { id: 3, date: '13th January 2025', content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras sit amet ornare metus...' },
-  ]);
 
-  const router = useRouter()
+// 1) Bring in the useJournals hook from JournalsContext
+import { useJournals } from '@/context/JournalsContext'; // <-- adjust import path
+import { useUser } from '@/context/UserContext';
+
+export default function JournalScreen() {
+  // 2) Grab the journals array and fetchJournals function
+  const { journals, fetchJournals } = useJournals();
+  const router = useRouter();
+  const { user } = useUser();
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchJournals(user.id);
+    } else {
+      console.log("No user ID found");
+    }
+  }, []);
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <ThemedView style={styles.header}>
-            <ThemedText style={styles.headerText}>Journals</ThemedText>
+          <ThemedText style={styles.headerText}>Journals</ThemedText>
         </ThemedView>
-        {entries.map((entry) => (
-          <TouchableOpacity style={styles.card}>
-                <ThemedText style={styles.cardTitle}>{entry.date}</ThemedText>
-                <ThemedText style={styles.cardContent}>{entry.content}</ThemedText>
-            </TouchableOpacity>
-        ))}
-        <ThemedText style={styles.subHeader}>Start a New Journal</ThemedText> 
         <Divider />
+        <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        <ThemedText style={styles.subHeader}>Start a New Journal</ThemedText> 
         <ThemedView style={styles.journalOptions}>
-            <TouchableOpacity style={[styles.optionButton, styles.unguided]} onPress={() => router.push('./journalEntry')}>
-                <ThemedText style={styles.optionText}>Blank Page</ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.optionButton, styles.guided]}>
-                <ThemedText style={styles.optionText}>Write with Prompts</ThemedText>
-            </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.optionButton, styles.unguided]} 
+            onPress={() => router.push('./journalEntry')}
+          >
+            <ThemedText style={styles.optionText}>Blank Page</ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.optionButton, styles.guided]}>
+            <ThemedText style={styles.optionText}>Write with Prompts</ThemedText>
+          </TouchableOpacity>
         </ThemedView>
+
+        {journals.map((entry) => (
+          <TouchableOpacity 
+            key={entry.id} /* Make sure to use a key! */
+            style={styles.card} 
+            onPress={() => {  
+              router.push({
+                pathname: './journalEntry',
+                params: { journalId: entry.id },
+              });
+            }}
+          >
+            {/* 
+              Use whatever fields your journal objects contain, e.g. 
+              entry.title, entry.content. 
+            */}
+            <ThemedText style={styles.cardTitle}>{entry.title}</ThemedText>
+            <ThemedText style={styles.dateText}>
+              {new Date(entry.createdAt).toLocaleString()}
+            </ThemedText>
+            <ThemedText style={styles.cardContent} numberOfLines={3} ellipsizeMode='tail'>{entry.content}</ThemedText>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
       <BottomNav />
     </ThemedView>
@@ -51,6 +81,7 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
     padding: '3%',
+    marginBottom: '25%',
   },
   header: {
     flexDirection: 'row',
@@ -80,6 +111,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     marginTop: 20,
     backgroundColor: '#F7F9FC',
+    marginBottom: '5%',
   },
   optionButton: {
     flex: 1,
@@ -122,7 +154,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    marginBottom: 10,
+    marginBottom: 5,
     fontFamily: 'Comfortaa_400Regular',
   },
   cardContent: {
@@ -130,4 +162,11 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     fontFamily: 'Comfortaa_400Regular',
   },
+  dateText: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+    fontFamily: 'Comfortaa_400Regular',
+  },
+
 });
