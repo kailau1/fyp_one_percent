@@ -123,17 +123,19 @@ export const getJournalEntry = async (
 }
 
 export const updateJournalEntry = async (
-    journalId: string,
+    id: string,
+    title: string,
     content: string
 ): Promise<Journal | null> => {
     try {
         const requestOptions = {
             method: 'PUT',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({content}),
+            body: JSON.stringify({ id, title, content }),
         };
 
-        const response = await fetch(`http://localhost:8084/api/journals/${journalId}`, requestOptions);
+        console.log('updateJournalEntry requestOptions:', requestOptions.body);
+        const response = await fetch(`http://localhost:8084/api/journals/entry`, requestOptions);
         console.log('Response status:', response.status);
 
         if (!response.ok) {

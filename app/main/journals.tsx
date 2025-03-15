@@ -6,13 +6,10 @@ import { ThemedText } from '@/components/ThemedText';
 import Divider from '@/components/ui/Divider';
 import { useRouter } from 'expo-router';
 
-
-// 1) Bring in the useJournals hook from JournalsContext
-import { useJournals } from '@/context/JournalsContext'; // <-- adjust import path
+import { useJournals } from '@/context/JournalsContext';
 import { useUser } from '@/context/UserContext';
 
 export default function JournalScreen() {
-  // 2) Grab the journals array and fetchJournals function
   const { journals, fetchJournals } = useJournals();
   const router = useRouter();
   const { user } = useUser();
@@ -47,19 +44,14 @@ export default function JournalScreen() {
 
         {journals.map((entry) => (
           <TouchableOpacity 
-            key={entry.id} /* Make sure to use a key! */
+            key={entry.id}
             style={styles.card} 
             onPress={() => {  
               router.push({
                 pathname: './journalEntry',
                 params: { journalId: entry.id },
               });
-            }}
-          >
-            {/* 
-              Use whatever fields your journal objects contain, e.g. 
-              entry.title, entry.content. 
-            */}
+            }}>
             <ThemedText style={styles.cardTitle}>{entry.title}</ThemedText>
             <ThemedText style={styles.dateText}>
               {new Date(entry.createdAt).toLocaleString()}

@@ -1,28 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
-  TextInput 
-} from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import Divider from '@/components/ui/Divider';
+import ButtonCTA from '@/components/ui/ButtonCTA';
 
 import Header from '@/components/Header-Sub';
 import BottomNav from '@/components/ui/BottomNav';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 
-// 1) Contexts and API
 import { useJournals } from '@/context/JournalsContext';
 import { useUser } from '@/context/UserContext';
-import {
-  createJournal,
-  updateJournalEntry
-} from '@/scripts/services/journalService';
+import { createJournal, updateJournalEntry} from '@/scripts/services/journalService';
 
 export default function JournalEntryScreen() {
+
   const [journalTitle, setJournalTitle] = useState('');
   const [journalContent, setJournalContent] = useState('');
   const [journalId, setJournalId] = useState<string | null>(null);
@@ -64,7 +57,7 @@ export default function JournalEntryScreen() {
     try {
       if (journalId) {
         console.log('Updating journal:', journalContent);
-        const updated = await updateJournalEntry(journalId, journalContent);
+        const updated = await updateJournalEntry(journalId, journalTitle, journalContent);
         if (updated) {
           console.log('Journal updated:', updated);
         }
@@ -90,7 +83,6 @@ export default function JournalEntryScreen() {
         onBackPress={() => router.back()}
         iconColour={iconColour}
       />
-
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <ThemedView style={styles.entryCard}>
           <ThemedText style={styles.cardTitle}>
@@ -107,6 +99,7 @@ export default function JournalEntryScreen() {
                 setJournalTitle(text);
               }}
             />
+            <Divider />
             <TextInput
               style={styles.textField}
               placeholder="Start Writing Here!"
@@ -116,13 +109,16 @@ export default function JournalEntryScreen() {
             />
           </ThemedView>
         </ThemedView>
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <ThemedText style={styles.saveButtonText}>
-            {journalId ? 'Update Journal' : 'Save Journal'}
-          </ThemedText>
-        </TouchableOpacity>
+          <ThemedView>
+            <TouchableOpacity  style={styles.buttonContainer}>
+              <ThemedText style={styles.buttonText}>Get Feedback from AI</ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity  onPress={handleSave} style={styles.buttonContainer}>
+              <ThemedText style={styles.buttonText}>{journalId ? 'Update Journal' : 'Save Journal'}</ThemedText>
+            </TouchableOpacity>
+          </ThemedView>
+          
       </ScrollView>
-
       <BottomNav />
     </ThemedView>
   );
@@ -132,6 +128,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+    flexDirection: 'column',
+    alignItems: 'center',
   },
   scrollViewContent: {
     flexGrow: 1,
@@ -140,8 +138,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#E4EAF2',
     borderRadius: 16,
     padding: 20,
-    margin: 20,
-    height: '60%',
+    marginHorizontal: 40,
+    height: '70%',
+    width: '100%',
+    alignSelf: 'center',
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   },
   titleInput: {
     backgroundColor: '#E4EAF2',
-    paddingHorizontal: '1%',
+    paddingHorizontal: '3%',
     paddingVertical: 12,
     marginTop: '4%',
     fontSize: 20,
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginTop: '2%',
     height: '100%',
-    paddingHorizontal: 15,
+    paddingHorizontal: '3%',
     paddingVertical: 15,
     fontSize: 16,
     fontFamily: 'Comfortaa_400Regular',
@@ -192,24 +192,20 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderColor: '#ccc',
     backgroundColor: '#E4EAF2',
+    height: '90%',
   },
-  saveButton: {
+  buttonContainer: {
+    padding: 7,
     backgroundColor: '#74B7E2',
-    borderRadius: 10,
-    paddingVertical: 15,
-    marginHorizontal: 20,
-    marginTop: 10,
+    borderRadius: 40,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: 'Comfortaa_400Regular',
-    color: '#000',
-  },
+    justifyContent: 'center',
+    width: '100%',
+    marginTop: '8%',
+},
+buttonText: {
+    fontSize: 20,
+    fontFamily: 'Comfortaa_400Regular'
+},
+
 });

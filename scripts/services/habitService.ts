@@ -127,9 +127,10 @@ export const updateHabit = async (
         const requestOptions = {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({Habit}),
+            body: JSON.stringify({ id: Habit.id, habitName: Habit.habitName, description: Habit.description, colour: Habit.colour }),
         };
 
+        console.log("body: ", requestOptions.body);
         const response = await fetch(`http://localhost:8084/api/habits/update`, requestOptions);
 
         if (!response.ok) {
