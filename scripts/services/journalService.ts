@@ -8,13 +8,14 @@ export interface Journal {
 export const createJournal = async (
     userId: string,
     title: string,
-    content: string
+    content: string,
+    llmResponse?: string,
 ): Promise <Journal | null> => {
     try {
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({userId, title, content})
+            body: JSON.stringify({ userId, title, content, llmResponse})
         }
 
         const response = await fetch('http://localhost:8084/api/journals', requestOptions)
@@ -42,7 +43,6 @@ export const getUserJournals = async (
     userId: string,
     setJournals: (journals: Journal[]) => void
 ): Promise<Journal[]> => {
-    console.log('getUserJournals called with userId:', userId);
     try {
         const requestOptions = {
             method: 'GET',
@@ -50,7 +50,6 @@ export const getUserJournals = async (
         };
 
         const response = await fetch(`http://localhost:8084/api/journals/${userId}`, requestOptions);
-        console.log('Response status:', response.status);
 
         if (!response.ok) {
             const errorMessage = await response.text();
@@ -59,7 +58,6 @@ export const getUserJournals = async (
         }
 
         const data = await response.json();
-        console.log('getUserJournals data:', data);
         setJournals(data);
         return data;
 
@@ -76,12 +74,12 @@ export const deleteJournalEntry = async (
 ): Promise<void> => {
     try {
         const requestOptions = {
-            method: 'GET',
+            method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
         };
 
         const response = await fetch(`http://localhost:8084/api/journals/${journalId}`, requestOptions);
-        console.log('Response status:', response.status);
+        console.log('Delete Journal Entry Response status:', response.status);
 
         if (!response.ok) {
             const errorMessage = await response.text();
@@ -125,13 +123,14 @@ export const getJournalEntry = async (
 export const updateJournalEntry = async (
     id: string,
     title: string,
-    content: string
+    content: string,
+    llmResponse: string
 ): Promise<Journal | null> => {
     try {
         const requestOptions = {
             method: 'PUT',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ id, title, content }),
+            body: JSON.stringify({ id, title, content, llmResponse}),
         };
 
         console.log('updateJournalEntry requestOptions:', requestOptions.body);
@@ -152,6 +151,7 @@ export const updateJournalEntry = async (
         return null;
     }
 }
+
 
 
     

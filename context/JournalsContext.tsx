@@ -6,6 +6,7 @@ export interface Journal {
     title: string;
     content: string;
     createdAt: string;
+    llmResponse?: string;
 
 }
 

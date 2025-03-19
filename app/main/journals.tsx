@@ -1,18 +1,21 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, ScrollView, TouchableOpacity, View, Modal } from 'react-native';
 import BottomNav from '@/components/ui/BottomNav';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import Divider from '@/components/ui/Divider';
-import { useRouter } from 'expo-router';
-
+import JournalEntryScreen from '@/app/main/journalEntry'; 
 import { useJournals } from '@/context/JournalsContext';
 import { useUser } from '@/context/UserContext';
+import { deleteJournalEntry } from '@/scripts/services/journalService';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function JournalScreen() {
   const { journals, fetchJournals } = useJournals();
-  const router = useRouter();
   const { user } = useUser();
+  const [isModalVisible, setIsModalVisible] = useState(false); 
+  const [selectedJournalId, setSelectedJournalId] = useState<string | null>(null); 
+  const [optionsVisible, setOptionsVisible] = useState<string | null>(null); 
 
   useEffect(() => {
     if (user?.id) {
@@ -22,45 +25,98 @@ export default function JournalScreen() {
     }
   }, []);
 
+  const handleDeleteJournal = async (journalId: string) => {
+    console.log('Deleting Journal Entry with ID:', journalId);
+
+    try {
+      await deleteJournalEntry(journalId);
+       if (user?.id) {
+        fetchJournals(user.id);
+       }
+      setOptionsVisible(null); 
+    } catch (error) {
+      console.error('Error deleting journal:', error);
+    }
+  };
+
   return (
     <ThemedView style={styles.container}>
-        <ThemedView style={styles.header}>
-          <ThemedText style={styles.headerText}>Journals</ThemedText>
-        </ThemedView>
-        <Divider />
-        <ScrollView contentContainerStyle={styles.scrollViewContent}>
+      <ThemedView style={styles.header}>
+        <ThemedText style={styles.headerText}>Journals</ThemedText>
+      </ThemedView>
+      <Divider />
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <ThemedText style={styles.subHeader}>Start a New Journal</ThemedText> 
         <ThemedView style={styles.journalOptions}>
           <TouchableOpacity 
-            style={[styles.optionButton, styles.unguided]} 
-            onPress={() => router.push('./journalEntry')}
+            style={[styles.typeButton, styles.unguided]} 
+            onPress={() => setIsModalVisible(true)} 
           >
-            <ThemedText style={styles.optionText}>Blank Page</ThemedText>
+            <ThemedText style={styles.typeText}>Blank Page</ThemedText>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.optionButton, styles.guided]}>
-            <ThemedText style={styles.optionText}>Write with Prompts</ThemedText>
+          <TouchableOpacity style={[styles.typeButton, styles.guided]}>
+            <ThemedText style={styles.typeText}>Write with Prompts</ThemedText>
           </TouchableOpacity>
         </ThemedView>
 
-        {journals.map((entry) => (
-          <TouchableOpacity 
-            key={entry.id}
-            style={styles.card} 
-            onPress={() => {  
-              router.push({
-                pathname: './journalEntry',
-                params: { journalId: entry.id },
-              });
-            }}>
-            <ThemedText style={styles.cardTitle}>{entry.title}</ThemedText>
-            <ThemedText style={styles.dateText}>
-              {new Date(entry.createdAt).toLocaleString()}
-            </ThemedText>
-            <ThemedText style={styles.cardContent} numberOfLines={3} ellipsizeMode='tail'>{entry.content}</ThemedText>
-          </TouchableOpacity>
+        {[...journals]
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .map((entry) => (
+          <View key={entry.id}>
+            <TouchableOpacity 
+              style={styles.card} 
+              onPress={() => {setIsModalVisible(true);
+                setSelectedJournalId(entry.id); 
+              }} 
+            >
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <ThemedText style={styles.cardTitle}>{entry.title}</ThemedText>
+                <TouchableOpacity 
+                style={styles.optionsButton} 
+                onPress={() => setOptionsVisible(optionsVisible === entry.id ? null : entry.id)}
+                >
+                <MaterialIcons name="more-vert" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
+              <ThemedText style={styles.dateText}>
+                {new Date(entry.createdAt).toLocaleString()}
+              </ThemedText>
+              <ThemedText style={styles.cardContent} numberOfLines={3} ellipsizeMode='tail'>{entry.content}</ThemedText>
+            </TouchableOpacity>
+            {optionsVisible === entry.id && (
+              <View style={styles.optionsMenu}>
+                <TouchableOpacity 
+                  onPress={() => { console.log("Delete button working.");
+                    handleDeleteJournal(entry.id);
+                  }}
+                  style={styles.optionItem}
+                >
+                  <ThemedText style={styles.optionText}>Delete</ThemedText>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         ))}
       </ScrollView>
       <BottomNav />
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+          <JournalEntryScreen 
+            onClose={() => {
+              setIsModalVisible(false);
+              setSelectedJournalId(null); 
+            }}
+            journalId={selectedJournalId} 
+          />          
+          </View>
+        </View>
+      </Modal>
     </ThemedView>
   );
 }
@@ -92,7 +148,7 @@ const styles = StyleSheet.create({
   },
   subHeader: {
     fontSize: 18,
-    fontWeight: 600,
+    fontWeight: '600',
     marginBottom: '1%',
     marginTop: '5%',
     fontFamily: 'Comfortaa_400Regular',
@@ -105,7 +161,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F7F9FC',
     marginBottom: '5%',
   },
-  optionButton: {
+  typeButton: {
     flex: 1,
     paddingVertical: 20,
     marginHorizontal: '10%',
@@ -124,11 +180,25 @@ const styles = StyleSheet.create({
   guided: {
     backgroundColor: '#DFF4E3',
   },
-  optionText: {
+  typeText: {
     fontSize: 16,
     fontWeight: '600',
     fontFamily: 'Comfortaa_400Regular',
     textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '100%',
+    height: '100%', 
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    marginTop: '10%',
   },
   card: {
     backgroundColor: '#E4EAF2',
@@ -160,5 +230,32 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     fontFamily: 'Comfortaa_400Regular',
   },
-
+  optionsButton: {
+    marginRight: 10,
+  },
+  optionsMenu: {
+    position: 'absolute',
+    top: 40,
+    right: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 5,
+    width: 100,
+  },
+  optionItem: {
+    padding: 10,
+    alignItems: 'center',
+  },
+  optionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: 'Comfortaa_400Regular',
+    textAlign: 'center',
+    color: '#333', 
+    paddingVertical: 8, 
+  }
 });

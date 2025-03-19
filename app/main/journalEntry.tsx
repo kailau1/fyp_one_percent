@@ -1,126 +1,136 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import Divider from '@/components/ui/Divider';
-import ButtonCTA from '@/components/ui/ButtonCTA';
-
-import Header from '@/components/Header-Sub';
-import BottomNav from '@/components/ui/BottomNav';
-import { ThemedView } from '@/components/ThemedView';
-import { ThemedText } from '@/components/ThemedText';
-
+import { StyleSheet, TextInput, View, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useJournals } from '@/context/JournalsContext';
 import { useUser } from '@/context/UserContext';
-import { createJournal, updateJournalEntry} from '@/scripts/services/journalService';
+import { createJournal, updateJournalEntry } from '@/scripts/services/journalService';
+import { ThemedText } from '@/components/ThemedText';
+import Divider from '@/components/ui/Divider';
+import { fetchOpenAIResponse } from '@/scripts/services/openaiService';
+import Markdown from 'react-native-markdown-display';
 
-export default function JournalEntryScreen() {
+interface JournalEntryScreenProps {
+  onClose: () => void;
+  journalId: string | null;
+}
 
+export default function JournalEntryScreen({ onClose, journalId }: JournalEntryScreenProps) {
   const [journalTitle, setJournalTitle] = useState('');
   const [journalContent, setJournalContent] = useState('');
-  const [journalId, setJournalId] = useState<string | null>(null);
-
+  const [aiFeedback, setAiFeedback] = useState('');
+  const [loading, setLoading] = useState(false);
   const { user } = useUser();
-
-  const params = useLocalSearchParams();
-  
-  const router = useRouter();
-  const colorScheme = useColorScheme();
-  const iconColour = colorScheme === 'dark' ? '#fff' : '#000';
-
   const { journals, fetchJournals } = useJournals();
 
   useEffect(() => {
-    if (params.journalId) {
-      setJournalId(params.journalId as string);
-    }
-  }, [params]);
-
-  useEffect(() => {
     if (!journalId) return;
-
     const existingJournal = journals.find((j) => j.id === journalId);
     if (existingJournal) {
       setJournalTitle(existingJournal.title);
       setJournalContent(existingJournal.content);
+      if (existingJournal.llmResponse) {
+        setAiFeedback(existingJournal.llmResponse);
+      }
     }
   }, [journalId, journals]);
 
-
-
   const handleSave = async () => {
+    console.log("HandleSave Called")
     if (!user?.id) {
       console.log('No user logged in, cannot save');
+      return;
+    }
+    if (journalContent.trim() === '' && journalTitle.trim() === '') {
+      onClose();
       return;
     }
 
     try {
       if (journalId) {
-        console.log('Updating journal:', journalContent);
-        const updated = await updateJournalEntry(journalId, journalTitle, journalContent);
-        if (updated) {
-          console.log('Journal updated:', updated);
-        }
+        await updateJournalEntry(journalId, journalTitle, journalContent, aiFeedback);
       } else {
-        console.log('Creating journal:', journalContent);
-        const created = await createJournal(user.id, journalTitle, journalContent);
-        if (created) {
-          console.log('Journal created:', created);
-        }
+        await createJournal(user.id, journalTitle, journalContent, aiFeedback);
       }
       fetchJournals(user.id);
-
-      router.back();
+      onClose(); 
     } catch (error) {
-      console.error('Error saving journal:', user.id, journalTitle, journalContent);
+      console.error('Error saving journal:', error);
     }
   };
 
+  const getAiFeedback = async () => {
+    if (!journalContent.trim()) {
+      alert("Write something before requesting AI feedback!");
+      return;
+    }
+    setLoading(true);
+    setAiFeedback(""); 
+    try {
+      const response = await fetchOpenAIResponse(journalContent);
+    
+      if (response.error) {
+        throw new Error(response.error);
+      }
+  
+      if (response.choices && response.choices.length > 0) {
+        setAiFeedback(response.choices[0].message.content);
+      } else {
+        setAiFeedback("No feedback available.");
+      }
+  
+    } catch (error) {
+      console.error("Error fetching AI feedback:", error);
+      setAiFeedback("Failed to get feedback. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const markdownStyles ={
+    body: {
+      fontFamily: 'Comfortaa_400Regular',
+      fontSize: 16,
+    }
+  }
+
   return (
-    <ThemedView style={styles.container}>
-      <Header 
-        title="Write Your Journal"
-        onBackPress={() => router.back()}
-        iconColour={iconColour}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <View style={styles.header}>
+        <ThemedText style={styles.date}>{new Date().toDateString()}</ThemedText>
+        <TouchableOpacity onPress={getAiFeedback}>
+          <ThemedText style={styles.linkText}>Get AI Feedback</ThemedText>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleSave}>
+          <ThemedText style={styles.completeText}>Done</ThemedText>
+        </TouchableOpacity>
+      </View>
+      <Divider />
+      <TextInput
+        style={styles.textFieldTitle}
+        placeholder="Title"
+        value={journalTitle}
+        onChangeText={setJournalTitle}
       />
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <ThemedView style={styles.entryCard}>
-          <ThemedText style={styles.cardTitle}>
-            {journalId ? 'Edit Your Entry' : 'Create a New Entry'}
-          </ThemedText>
-          <Divider />
-            <ThemedView style={styles.fieldContainer}>
-            <TextInput
-              style={styles.titleInput}
-              placeholder="Title"
-              value={journalTitle}
-              onChangeText={(text) => {
-                console.log('Title changed to:', text);
-                setJournalTitle(text);
-              }}
-            />
-            <Divider />
-            <TextInput
-              style={styles.textField}
-              placeholder="Start Writing Here!"
-              multiline
-              value={journalContent}
-              onChangeText={setJournalContent}
-            />
-          </ThemedView>
-        </ThemedView>
-          <ThemedView>
-            <TouchableOpacity  style={styles.buttonContainer}>
-              <ThemedText style={styles.buttonText}>Get Feedback from AI</ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity  onPress={handleSave} style={styles.buttonContainer}>
-              <ThemedText style={styles.buttonText}>{journalId ? 'Update Journal' : 'Save Journal'}</ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
-          
-      </ScrollView>
-      <BottomNav />
-    </ThemedView>
+      <TextInput
+        style={styles.textFieldContent}
+        placeholder="Start writing..."
+        multiline
+        autoFocus
+        value={journalContent}
+        onChangeText={setJournalContent}
+      />
+      {loading ? (
+        <ActivityIndicator size="large" color="#007AFF" style={styles.loading} />
+      ) : aiFeedback.trim() !== "" ? ( 
+        <View style={styles.aiFeedbackBox}>
+          <ScrollView>
+            <Markdown style={markdownStyles}>{aiFeedback}</Markdown>
+          </ScrollView>
+        </View>
+      ) : null}
+    </KeyboardAvoidingView>
   );
 }
 
@@ -128,84 +138,74 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    flexDirection: 'column',
+    marginTop: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  scrollViewContent: {
-    flexGrow: 1,
-  },
-  entryCard: {
-    backgroundColor: '#E4EAF2',
-    borderRadius: 16,
-    padding: 20,
-    marginHorizontal: 40,
-    height: '70%',
-    width: '100%',
-    alignSelf: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: '#878787',
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 10,
-    textAlign: 'center',
-    fontFamily: 'Comfortaa_400Regular',
-  },
-  label: {
-    marginTop: 12,
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: 'Comfortaa_400Regular',
-    marginBottom: 6,
-  },
-  titleInput: {
-    backgroundColor: '#E4EAF2',
-    paddingHorizontal: '3%',
-    paddingVertical: 12,
-    marginTop: '4%',
-    fontSize: 20,
-    fontWeight: '600',
-    fontFamily: 'Comfortaa_400Regular',
-    outlineWidth: 0,
-  },
-  textField: {
-    backgroundColor: '#E4EAF2',
-    borderRadius: 6,
-    marginTop: '2%',
-    height: '100%',
-    paddingHorizontal: '3%',
     paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#DADADA',
+    backgroundColor: '#FFF',
+  },
+  date: {
     fontSize: 16,
+    color: '#888',
+  },
+  completeText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#007AFF',
+  },
+  linkText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#8E44AD',
+  },
+  textFieldTitle: {
+    padding: 20,
+    fontSize: 16,
+    fontWeight: '600',
     fontFamily: 'Comfortaa_400Regular',
-    textAlignVertical: 'top',
     outlineWidth: 0,
   },
-  fieldContainer: {
-    marginTop: '5%',
-    borderWidth: 1,
-    borderRadius: 6,
-    borderColor: '#ccc',
-    backgroundColor: '#E4EAF2',
-    height: '90%',
+  textFieldContent: {
+    flex: 1,
+    padding: 20,
+    fontSize: 16,
+    textAlignVertical: 'top',
+    fontFamily: 'Comfortaa_400Regular',
+    outlineWidth: 0,
   },
-  buttonContainer: {
-    padding: 7,
-    backgroundColor: '#74B7E2',
-    borderRadius: 40,
+  feedbackButton: {
+    backgroundColor: '#007AFF',
+    padding: 10,
+    borderRadius: 8,
     alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    marginTop: '8%',
-},
-buttonText: {
-    fontSize: 20,
-    fontFamily: 'Comfortaa_400Regular'
-},
-
+    marginHorizontal: 20,
+    marginBottom: 10,
+  },
+  feedbackText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  aiFeedbackBox: {
+    marginHorizontal: 20,
+    marginVertical: 10,
+    backgroundColor: '#F3F3F3',
+    padding: 15,
+    borderRadius: 8,
+    height: '40%',
+  },
+  aiFeedbackText: {
+    fontSize: 16,
+    color: '#333',
+    fontFamily: 'Comfortaa_400Regular',
+  },
+  loading: {
+    marginTop: 10,
+  },
 });
