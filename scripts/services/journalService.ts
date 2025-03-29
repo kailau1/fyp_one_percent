@@ -1,3 +1,5 @@
+import { BASE_URL } from '@env';
+
 export interface Journal {
     id: string,
     title: string,
@@ -6,19 +8,23 @@ export interface Journal {
 }
 
 export const createJournal = async (
-    userId: string,
     title: string,
     content: string,
+    token: string,
     llmResponse?: string,
-): Promise <Journal | null> => {
+): Promise<Journal | null> => {
     try {
         const requestOptions = {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, title, content, llmResponse})
-        }
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ title, content, llmResponse })
+        };
 
-        const response = await fetch('http://localhost:8084/api/journals', requestOptions)
+        console.log("Request Options:", requestOptions); // Debugging step
+        const response = await fetch(`${BASE_URL}/api/journals`, requestOptions);
 
         if (!response.ok) {
             const errorMessage = await response.text();
@@ -34,22 +40,25 @@ export const createJournal = async (
 
     } catch (error) {
         console.error('createJournal catch:', error);
-        console.log('Error', 'Something went wrong. Please try again.', userId, title, content);
+        console.log('Error', 'Something went wrong. Please try again.', title, content);
         return null;
     }
-}
+};
 
 export const getUserJournals = async (
-    userId: string,
-    setJournals: (journals: Journal[]) => void
+    setJournals: (journals: Journal[]) => void,
+    token: string
 ): Promise<Journal[]> => {
     try {
         const requestOptions = {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
         };
 
-        const response = await fetch(`http://localhost:8084/api/journals/${userId}`, requestOptions);
+        const response = await fetch(`${BASE_URL}/api/journals/me`, requestOptions);
 
         if (!response.ok) {
             const errorMessage = await response.text();
@@ -70,15 +79,18 @@ export const getUserJournals = async (
 
 export const deleteJournalEntry = async (
     journalId: string,
-
+    token: string
 ): Promise<void> => {
     try {
         const requestOptions = {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
         };
 
-        const response = await fetch(`http://localhost:8084/api/journals/${journalId}`, requestOptions);
+        const response = await fetch(`${BASE_URL}/api/journals/${journalId}`, requestOptions);
         console.log('Delete Journal Entry Response status:', response.status);
 
         if (!response.ok) {
@@ -93,15 +105,19 @@ export const deleteJournalEntry = async (
 }
 
 export const getJournalEntry = async (
-    journalId: string
+    journalId: string,
+    token: string
 ): Promise<Journal | null> => {
     try {
         const requestOptions = {
             method: 'GET',
-            headers: {'Content-Type': 'application/json'}, 
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }, 
         };
 
-        const response = await fetch(`http://localhost:8084/api/journals/${journalId}`, requestOptions)
+        const response = await fetch(`${BASE_URL}/api/journals/${journalId}`, requestOptions)
         console.log('Response status:', response.status);
 
         if (!response.ok) {
@@ -124,17 +140,21 @@ export const updateJournalEntry = async (
     id: string,
     title: string,
     content: string,
+    token: string,
     llmResponse: string
 ): Promise<Journal | null> => {
     try {
         const requestOptions = {
             method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({ id, title, content, llmResponse}),
         };
 
         console.log('updateJournalEntry requestOptions:', requestOptions.body);
-        const response = await fetch(`http://localhost:8084/api/journals/entry`, requestOptions);
+        const response = await fetch(`${BASE_URL}/api/journals/entry`, requestOptions);
         console.log('Response status:', response.status);
 
         if (!response.ok) {
@@ -151,9 +171,3 @@ export const updateJournalEntry = async (
         return null;
     }
 }
-
-
-
-    
-
-

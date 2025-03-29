@@ -4,11 +4,10 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 export default function BottomNav () {
-    const colourScheme = useColorScheme();
-    const iconColour = colourScheme === 'dark' ? '#fff' : '#000';
+    const router = useRouter()
 
     return (
         <ThemedView style={styles.bottomNav}>

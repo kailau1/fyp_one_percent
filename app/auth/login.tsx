@@ -20,8 +20,8 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string | null }>({});
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const validateInputs = () => {
     const newErrors: typeof errors = {};
@@ -33,25 +33,14 @@ export default function LoginScreen() {
 
   const callLoginUser = async () => {
     if (!validateInputs()) return;
-    console.log('Calling loginUser with email:', email);
-    const errorMessage = await loginUser(email, password, router, setLoading, (user) => {
-      console.log('Setting user:', user);
-      setUser(user);
-      console.log('User set:', user);
-      if (user?.id) {
-        console.log('Login successful, about to call getUserHabits with user id:', user.id);
-        getUserHabits(user.id, (habits) => {
-          const habitsArray = Array.isArray(habits) ? habits : [habits];
-          console.log('Setting habits:', habitsArray);
-          setHabits(habitsArray as Habit[]);
-        });
-      } else {
-        console.log('User ID is not available after login');
-      }
-    });
-
-    if (errorMessage) {
-      setErrors((prev) => ({ ...prev, general: errorMessage }));
+    try {
+      const loggedInUser = await loginUser(email, password);
+      setUser(loggedInUser);
+      router.push('/main/dashboard'); 
+    } catch (error) {
+      const errorMsg = 'Login failed. Please try again.';
+      setErrorMessage(errorMsg);
+      setErrors((prev) => ({ ...prev, general: errorMsg }));
     }
   };
 

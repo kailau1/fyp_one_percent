@@ -4,19 +4,57 @@ import BottomNav from '@/components/ui/BottomNav';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import Divider from '@/components/ui/Divider';
-import { useState} from 'react';
-import { useUser} from '@/context/UserContext';
+import { useState, useEffect } from 'react';
+import { useUser } from '@/context/UserContext';
 import { useLocalSearchParams } from 'expo-router';
+import { useHabits } from '@/context/HabitsContext';
+import { fetchTipOfTheDay } from '@/scripts/services/openaiService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
+
+
+
 
 export default function DashboardScreen() {
-  const [habits, setHabits] = useState([
-      { id: 1, title: 'Drink Water'},
-      { id: 2, title: 'Morning Workout'},
-      { id: 3, title: 'Read for 30 minutes'},
-    ]);
+  const { habits } = useHabits();
+  const router = useRouter();
   const { user } = useUser();
   const { fresh } = useLocalSearchParams();
   const welcomeTitle = fresh === 'true' ? 'Welcome,' : 'Welcome back,';
+  const [tip, setTip] = useState<string>('Loading tip...');
+  const [tipError, setTipError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getCachedTip = async () => {
+      try {
+        const cachedTip = await AsyncStorage.getItem('tipOfTheDay');
+        const cachedDate = await AsyncStorage.getItem('tipOfTheDayDate');
+        const today = new Date().toISOString().split('T')[0]; 
+        if (cachedTip && cachedDate === today) {
+          setTip(cachedTip);
+        } else {
+          if (!user?.token) return;
+          const result = await fetchTipOfTheDay(user.token);
+          console.log('Tip result:', result);
+          if (result.error) {
+            setTipError('Could not load tip. Please try again.');
+          } else {
+            if (result.response) {
+              setTip(result.response);
+              await AsyncStorage.setItem('tipOfTheDay', result.response);
+              await AsyncStorage.setItem('tipOfTheDayDate', today);
+            }
+          }
+          
+        }
+      } catch (err) {
+        setTipError('Error loading tip.');
+        console.error('Tip cache error:', err);
+      }
+    };
+  
+    getCachedTip();
+  }, [user?.token]);
 
   return (
     <ThemedView style={styles.container}>
@@ -27,7 +65,7 @@ export default function DashboardScreen() {
         <ThemedView style={styles.card}>
           <ThemedText style={styles.cardTitle}>Tip of the Day</ThemedText>
           <ThemedText style={styles.tipText}>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras sit amet ornare metus.
+            {tipError ? tipError : tip}
           </ThemedText>
         </ThemedView>
         <ThemedView style={[styles.card]}>
@@ -35,23 +73,42 @@ export default function DashboardScreen() {
             How do you want to journal today?
           </ThemedText>
           <ThemedView style={styles.journalOptions}>
-            <TouchableOpacity style={[styles.optionButton, styles.unguided]}>
+            <TouchableOpacity style={[styles.optionButton, styles.unguided]} onPress={() => router.push({ pathname: '/main/journals', params: { openModal: 'true', option: 'blank' } })}>
               <ThemedText style={styles.optionText}>Blank Page</ThemedText>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.optionButton, styles.guided]}>
+            <TouchableOpacity style={[styles.optionButton, styles.guided]} onPress={() => router.push({ pathname: '/main/journals', params: { openModal: 'true', option: 'prompt', step: 'picker' } })}>
               <ThemedText style={styles.optionText}>Write with Prompts</ThemedText>
             </TouchableOpacity>
           </ThemedView>
         </ThemedView>
         <ThemedView style={styles.card}>
           <ThemedText style={styles.cardTitle}>Habits</ThemedText>
-          {habits.map((habit) => (
-            <div>
-              <ThemedText>{habit.title}</ThemedText>
-              <Divider />
-            </div>
-          ))}
-          <ThemedText style={styles.addButtonText}>+</ThemedText>
+          {habits.length === 0 ? (
+            <ThemedView>
+              <ThemedText>No habits yet. Add one to get started!</ThemedText>
+              <ThemedText style={styles.addButtonText}>+</ThemedText>
+            </ThemedView>
+          ) : (
+            habits.map((habit) => (
+              <ThemedView key={habit.id} style={{ marginBottom: 10, backgroundColor: '#E4EAF2' }}>
+                {habit.habitType === 'trigger-action' ? (
+                  <ThemedView style={{ backgroundColor: habit.colour, borderRadius: 15, padding: 10 }}>
+                  
+                    <ThemedText style={[styles.cardContent, {backgroundColor: habit.colour}]}>
+                      When I <ThemedText style={{ fontFamily: 'Comfortaa_400Regular', backgroundColor: habit.colour }}>{habit.trigger}</ThemedText>
+                    </ThemedText>
+                    <ThemedText style={[styles.cardContent, {backgroundColor: habit.colour, }]}>
+                      I will <ThemedText style={{ fontFamily: 'Comfortaa_400Regular', backgroundColor: habit.colour }}>{habit.action}</ThemedText>
+                    </ThemedText>
+                  </ThemedView>
+                ) : (
+                  <ThemedView style={{ backgroundColor: habit.colour, borderRadius: 15, padding: 10 }}>
+                    <ThemedText style={[styles.cardContentStandard, {backgroundColor: habit.colour}]}>{habit.habitName}</ThemedText>
+                  </ThemedView>
+                )}
+              </ThemedView>
+            ))
+          )}
         </ThemedView>
         <ThemedView style={styles.card}>
           <ThemedText style={styles.cardTitle}>Progress Overview</ThemedText>
@@ -80,7 +137,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     textAlign: 'center',
-    marginTop: '10%',
+    marginTop: '15%',
     fontFamily: 'Comfortaa_400Regular',
   },
   nameText: {
@@ -113,10 +170,20 @@ const styles = StyleSheet.create({
     fontFamily: 'Comfortaa_400Regular',
   },
   cardContent: {
-    fontSize: 16,
+    fontSize: 18,
+    marginBottom: 5,
+    fontFamily: 'Comfortaa_700Bold',
+    backgroundColor: '#E4EAF2',
+    padding: 5,
+  },
+  cardContentStandard: {
+    fontSize: 18,
     marginBottom: 5,
     fontFamily: 'Comfortaa_400Regular',
+    backgroundColor: '#E4EAF2',
+    padding: 5,
   },
+
   tipText: {
     fontSize: 16,
     marginBottom: 5,

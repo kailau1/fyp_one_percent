@@ -3,29 +3,29 @@ import { getUserHabits } from '@/scripts/services/habitService';
 
 export interface Habit {
     id: string;
-    habitName: string;
-    description: string;
+    habitName?: string;
+    description?: string;
     completed: boolean;
     colour: string;
+    habitType: 'standard' | 'trigger-action';
+    trigger?: string;
+    action?: string;
 }
 
 interface HabitsContextProps {
     habits: Habit[];
     setHabits: React.Dispatch<React.SetStateAction<Habit[]>>;
-    fetchHabits: (userId: string) => Promise<void>;
+    fetchHabits: (token: string) => Promise<void>;
 }
 
 const HabitsContext = createContext<HabitsContextProps | undefined>(undefined);
 
 export const HabitsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [habits, setHabits] = useState<Habit[]>([]);
-
-    useEffect(() => {
-        console.log('Habits context updated:', habits);
-    }, [habits]);
     
-    const fetchHabits = async (userId: string) => {
-        const fetchedHabits = await getUserHabits(userId, (habits) => habits);
+    const [habits, setHabits] = useState<Habit[]>([]);
+    
+    const fetchHabits = async (token: string) => {
+        const fetchedHabits = await getUserHabits( token, setHabits);
         setHabits(fetchedHabits || []);
     };
 

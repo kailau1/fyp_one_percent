@@ -1,26 +1,39 @@
+
+import { BASE_URL } from "@env";
+
 export interface Habit {
     id: string;
-    habitName: string;
-    description: string;
+    habitName?: string;
+    description?: string;
     completed: boolean;
     colour: string;
-}
+    habitType: 'standard' | 'trigger-action';
+    trigger?: string; 
+    action?: string;
 
+}
 export const createHabit = async (
     userId: string,
     habitName: string,
     description: string,
     complete: boolean,
     colour: string,
+    token: string,
+    habitType: 'standard' | 'trigger-action',
+    trigger?: string,
+    action?: string,
 ): Promise<Habit | null> => {
     try {
         const requestOptions = {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, habitName, description, complete, colour }),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ userId, habitName, description, complete, colour, habitType, trigger, action }),
         };
 
-        const response = await fetch('http://localhost:8084/api/habits/create', requestOptions);
+        const response = await fetch(`${BASE_URL}/api/habits/create`, requestOptions);
 
         if (!response.ok) {
             const errorMessage = await response.text();
@@ -40,17 +53,20 @@ export const createHabit = async (
 };
 
 export const getUserHabits = async (
-    userId: string,
-    setHabits: (habits: Habit[]) => void
+    token: string,
+    setHabits: (habits: Habit[]) => void,
+
 ): Promise<Habit[]> => {
-    console.log('getUserHabits called with userId:', userId);
     try {
         const requestOptions = {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
         };
 
-        const response = await fetch(`http://localhost:8084/api/habits/user/${userId}`, requestOptions);
+        const response = await fetch(`${BASE_URL}/api/habits/me`, requestOptions);
         console.log('Response status:', response.status);
 
         if (!response.ok) {
@@ -60,11 +76,9 @@ export const getUserHabits = async (
         }
 
         const data = await response.json();
-        console.log('getUserHabits data:', data);
         setHabits(data);
 
-        const habitsWithColours = data.map((habit: any) => ({ ...habit }));
-        return habitsWithColours;
+        return data;
 
     } catch (error) {
         console.error('getUserHabits catch:', error);
@@ -74,15 +88,19 @@ export const getUserHabits = async (
 };
 
 export const completeHabit = async (
-    habitId: string
+    habitId: string,
+    token: string
 ): Promise<void> => {
     try {
         const requestOptions = {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
         };
 
-        const response = await fetch(`http://localhost:8084/api/habits/completed/${habitId}`, requestOptions);
+        const response = await fetch(`${BASE_URL}/api/habits/complete/${habitId}`, requestOptions);
 
         if (!response.ok) {
             const errorMessage = await response.text();
@@ -97,15 +115,20 @@ export const completeHabit = async (
 };
 
 export const uncompleteHabit = async (
-    habitId: string
+    habitId: string,
+    token: string
 ): Promise<void> => {
     try {
         const requestOptions = {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
         };
 
-        const response = await fetch(`http://localhost:8084/api/habits/uncomplete/${habitId}`, requestOptions);
+        const response = await fetch(`${BASE_URL}/api/habits/uncomplete/${habitId}`, requestOptions);
+
 
         if (!response.ok) {
             const errorMessage = await response.text();
@@ -120,31 +143,76 @@ export const uncompleteHabit = async (
 };
 
 export const updateHabit = async (
-    Habit: Habit
-): Promise<Habit | null> => {
+    habit: Habit,
+    token: string
+  ): Promise<Habit | null> => {
     try {
-        console.log('updateHabit called with:', Habit);
+      console.log('updateHabit called with:', habit);
+  
+      const body = {
+        id: habit.id,
+        habitName: habit.habitName,
+        description: habit.description,
+        colour: habit.colour,
+        habitType: habit.habitType,
+        trigger: habit.trigger,
+        action: habit.action,
+      };
+  
+      const requestOptions = {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      };
+  
+      console.log('Update body:', requestOptions.body);
+      const response = await fetch(`${BASE_URL}/api/habits/update`, requestOptions);
+  
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        console.log('Update habit error:', errorMessage);
+        return null;
+      }
+  
+      const data = await response.json();
+      return data;
+  
+    } catch (error) {
+      console.error('updateHabit catch:', error);
+      return null;
+    }
+  };
+  
+
+  export const deleteHabit = async (
+    habitId: string,
+    token: string
+): Promise<boolean> => {
+    try {
         const requestOptions = {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: Habit.id, habitName: Habit.habitName, description: Habit.description, colour: Habit.colour }),
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
         };
 
-        console.log("body: ", requestOptions.body);
-        const response = await fetch(`http://localhost:8084/api/habits/update`, requestOptions);
+        const response = await fetch(`${BASE_URL}/api/habits/delete/${habitId}`, requestOptions);
 
         if (!response.ok) {
             const errorMessage = await response.text();
-            console.log(errorMessage);
-            return null;
+            console.log('Delete habit error:', errorMessage);
+            return false;
         }
 
-        const data = await response.json();
-        return data;
-
+        console.log(`Habit with ID ${habitId} deleted successfully.`);
+        return true;
     } catch (error) {
-        console.error(error);
+        console.error('deleteHabit catch:', error);
         console.log('Error', 'Something went wrong. Please try again.');
-        return null;
+        return false;
     }
-}
+};

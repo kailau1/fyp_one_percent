@@ -1,6 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts, Itim_400Regular } from '@expo-google-fonts/itim';
-import { Comfortaa_400Regular} from '@expo-google-fonts/comfortaa'
+import { Comfortaa_400Regular, Comfortaa_700Bold} from '@expo-google-fonts/comfortaa'
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -19,6 +19,7 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     Itim_400Regular,
     Comfortaa_400Regular,
+    Comfortaa_700Bold,
   });
 
   useEffect(() => {
@@ -42,9 +43,7 @@ export default function RootLayout() {
             <Stack.Screen name="auth/login" options={{ headerShown: false }} />
             <Stack.Screen name="main/dashboard" options={{ headerShown: false }} />
             <Stack.Screen name="main/habits" options={{ headerShown: false }} />
-            <Stack.Screen name="main/addHabits" options={{ headerShown: false }} />
             <Stack.Screen name="main/journals" options={{ headerShown: false }} />
-            <Stack.Screen name="main/journalEntry" options = {{ headerShown: false}} />
             <Stack.Screen name="+not-found" />
           </Stack>
         </ThemeProvider>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, StyleSheet, TextInputProps,Text } from 'react-native';
+import { View, TextInput, StyleSheet, TextInputProps } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 interface InputFieldProps extends TextInputProps {
@@ -10,22 +10,33 @@ interface InputFieldProps extends TextInputProps {
     error?: string;
 }
 
-const InputField: React.FC<InputFieldProps> = ({ placeholder, icon, secureTextEntry, onChangeText, style, isSmall, error, ...rest }) => {
+const InputField: React.FC<InputFieldProps> = ({ 
+    placeholder, 
+    icon, 
+    secureTextEntry, 
+    onChangeText, 
+    value, // Add value prop here
+    style, 
+    isSmall, 
+    error, 
+    ...rest 
+}) => {
     return (
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={[styles.textField, isSmall && styles.textFieldSmall]}
-                    placeholder={placeholder}
-                    placeholderTextColor="#aaa"
-                    secureTextEntry={secureTextEntry}
-                    onChangeText={onChangeText}
-                />
-            </View>
+        <View style={styles.inputContainer}>
+            <TextInput
+                style={[styles.textField, isSmall && styles.textFieldSmall]}
+                placeholder={placeholder}
+                placeholderTextColor="#aaa"
+                secureTextEntry={secureTextEntry}
+                onChangeText={onChangeText}
+                value={value} 
+                {...rest} 
+            />
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
-
     inputContainer: {
         backgroundColor: '#F0F0F0',
         position: 'relative',

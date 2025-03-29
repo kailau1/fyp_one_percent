@@ -13,7 +13,7 @@ export interface Journal {
 interface JournalContextProps {
     journals: Journal[];
     setJournals: React.Dispatch<React.SetStateAction<Journal[]>>;
-    fetchJournals: (userId: string) => Promise<void>;
+    fetchJournals: (token: string) => Promise<void>;
 
 }
 
@@ -23,8 +23,8 @@ export const JournalsProvider: React.FC<{children: ReactNode}> = ({ children }) 
     
     const [journals, setJournals] = useState<Journal[]>([]);
 
-    const fetchJournals = async (userId: string) => {
-        const fetchedJournals = await getUserJournals(userId, (journals) => journals);
+    const fetchJournals = async (token: string) => {
+        const fetchedJournals = await getUserJournals((journals) => journals, token);
         setJournals(fetchedJournals || []);
     };
 

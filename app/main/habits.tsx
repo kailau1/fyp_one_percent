@@ -1,17 +1,18 @@
-import { ScrollView, Switch, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { ScrollView, Switch, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Modal } from 'react-native';
 import { useState } from 'react';
-import { Overlay } from 'react-native-elements';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import BottomNav from '@/components/ui/BottomNav';
-import { completeHabit, uncompleteHabit, updateHabit } from '@/scripts/services/habitService';
+import { completeHabit, uncompleteHabit, updateHabit, deleteHabit } from '@/scripts/services/habitService';
 import { ProgressBar } from 'react-native-paper';
 import { useUser } from '@/context/UserContext';
 import { useHabits } from '@/context/HabitsContext';
 import { useRouter } from 'expo-router';
 import Divider from '@/components/ui/Divider';
-import ButtonCTA from '@/components/ui/ButtonCTA';
-import ScrollViewHabitColourCodes from '@/components/HabitColourCodes';
+import { Feather } from '@expo/vector-icons';
+import HabitModal from '@/components/modals/HabitModal';
+import AddHabitModal from '@/components/modals/AddHabitModal'; // import the AddHabitModal component
+
 
 export default function HabitsScreen() {
   const { user } = useUser();
@@ -20,27 +21,75 @@ export default function HabitsScreen() {
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
   const [selectedColour, setSelectedColour] = useState<string>('');
+  const [trigger, setTrigger] = useState('');
+  const [action, setAction] = useState('');
+  const [isAddHabitVisible, setIsAddHabitVisible] = useState(false); 
+
+  const colourCodes: Array<string> = ["#A7C7E7", "#B4E197", "#F8C8DC", "#D6A4E7", "#FDFD96", "#FFD1A9", "#AAF0D1", "#E3D4FC", "#FCA3B7", "#AEEDEE"];
 
   interface Habit {
     id: string;
-    habitName: string;
-    description: string;
+    habitName?: string;
+    description?: string;
+    trigger?: string;
+    action?: string;
+    habitType: 'standard' | 'trigger-action';
     colour: string;
     completed: boolean;
   }
-  
+
   const handleUpdateHabit = async () => {
-    if (selectedHabit) {
-      const updatedHabit = { ...selectedHabit, colour: selectedColour };
-      await updateHabit(updatedHabit);
-      setHabits((prevHabits) =>
-        prevHabits.map((habit) =>
-          habit.id === selectedHabit.id ? updatedHabit : habit
-        )
-      );
+    if (!selectedHabit || !user) return;
+
+    const updatedHabit: Habit = {
+      ...selectedHabit,
+      colour: selectedColour,
+      trigger: selectedHabit.habitType === 'trigger-action' ? trigger : undefined,
+      action: selectedHabit.habitType === 'trigger-action' ? action : undefined,
+    };
+
+    try {
+      const updated = await updateHabit(updatedHabit, user.token);
+
+      if (updated) {
+        setHabits((prevHabits) =>
+          prevHabits.map((habit) =>
+            habit.id === updated.id ? updated : habit
+          )
+        );
+        toggleOverlay();
+      } else {
+        alert("Failed to update habit.");
+      }
+    } catch (error) {
+      console.error('Error updating habit:', error);
+      alert('Failed to update habit. Please try again.');
     }
-    toggleOverlay();
   };
+
+  const handleDeleteHabit = async () => {
+    if (!selectedHabit || !user) {
+      alert("No habit selected or user not authenticated.");
+      return;
+    }
+
+    try {
+      const success = await deleteHabit(selectedHabit.id, user.token);
+
+      if (success) {
+        setHabits((prevHabits) =>
+          prevHabits.filter((habit) => habit.id !== selectedHabit.id)
+        );
+        toggleOverlay();
+      } else {
+        alert("Failed to delete habit. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error deleting habit:", error);
+      alert("An error occurred while deleting the habit. Please try again.");
+    }
+  };
+
 
   const handleToggle = async (id: string, completed: boolean) => {
     setHabits((prevHabits) =>
@@ -49,10 +98,17 @@ export default function HabitsScreen() {
       )
     );
 
-    if (completed) {
-      await uncompleteHabit(id);
-    } else {
-      await completeHabit(id);
+    try {
+      if (user) {
+        if (completed) {
+          await uncompleteHabit(id, user.token);
+        } else {
+          await completeHabit(id, user.token);
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling habit:', error);
+      alert('Failed to toggle habit. Please try again.');
     }
   };
 
@@ -61,9 +117,12 @@ export default function HabitsScreen() {
   };
 
   const openHabitOverlay = (habit: Habit) => {
+    if (!habit) return;
     setSelectedHabit(habit);
     setSelectedColour(habit.colour);
-    toggleOverlay();
+    setTrigger(habit.trigger || '');
+    setAction(habit.action || '');
+    setOverlayVisible(true);
   };
 
   const handleHabitDescriptionChange = (text: string) => {
@@ -82,28 +141,26 @@ export default function HabitsScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      {/* Header */}
       <ThemedView style={styles.header}>
         <ThemedText style={styles.headerText}>Your Habits</ThemedText>
-        <ThemedText style={styles.addButton} onPress={() => router.push('./addHabits')}>
-          +
-        </ThemedText>
+        <TouchableOpacity onPress={() => setIsAddHabitVisible(true)} style={styles.addButton}>
+          <Feather name="plus" size={35} color="#74B7E2" />
+        </TouchableOpacity>
+
       </ThemedView>
       <Divider />
 
-      {/* Progress Section */}
       <ThemedView style={styles.progressContainer}>
         <ThemedText style={styles.progressText}>
           {completedCount} of {habits.length} completed!
         </ThemedText>
         <ProgressBar
-          progress={completedCount / habits.length}
+          progress={habits.length > 0 ? completedCount / habits.length : 0}
           color="#4CAF50"
           style={styles.progressBar}
         />
       </ThemedView>
 
-      {/* Habit List */}
       <ScrollView contentContainerStyle={styles.habitsList}>
         {habits.map((habit) => (
           <TouchableOpacity
@@ -111,17 +168,30 @@ export default function HabitsScreen() {
             style={[styles.habitContainer, { backgroundColor: habit.colour }]}
             onPress={() => openHabitOverlay(habit)}
           >
-            <ThemedText style={styles.habitText}>{habit.habitName}</ThemedText>
-            <Switch
-              trackColor={{ false: '#E0E0E0', true: '#81C784' }}
-              thumbColor={habit.completed ? '#4CAF50' : '#FFF'}
-              value={habit.completed}
-              onValueChange={() => handleToggle(habit.id, habit.completed)}
-            />
+            {habit.habitType === 'trigger-action' ? (
+              <ThemedView style={{ backgroundColor: habit.colour }}>
+                <ThemedText style={styles.placeholderText}>
+                  When I <ThemedText style={styles.userInputText}>{habit.trigger}</ThemedText>
+                </ThemedText>
+                <ThemedText style={styles.placeholderText}>
+                  I will <ThemedText style={styles.userInputText}>{habit.action}</ThemedText>
+                </ThemedText>
+              </ThemedView>
+            ) : (
+              <ThemedText style={styles.habitText}>{habit.habitName}</ThemedText>
+            )}
+
+
+            <TouchableWithoutFeedback onPressIn={() => handleToggle(habit.id, habit.completed)}>
+              <Switch
+                trackColor={{ false: '#E0E0E0', true: '#81C784' }}
+                thumbColor={habit.completed ? '#4CAF50' : '#FFF'}
+                value={habit.completed}
+              />
+            </TouchableWithoutFeedback>
           </TouchableOpacity>
         ))}
 
-        {/* Completed Today Section */}
         <ThemedView style={styles.completedToday}>
           <ThemedText style={styles.completedText}>Completed Today</ThemedText>
           {habits
@@ -131,43 +201,43 @@ export default function HabitsScreen() {
                 key={habit.id}
                 style={[styles.habitContainer, { backgroundColor: habit.colour }]}
               >
-                <ThemedText style={styles.habitText}>{habit.habitName}</ThemedText>
+                {habit.habitType === 'trigger-action' ? (
+                  <ThemedView style={{ backgroundColor: habit.colour }}>
+                    <ThemedText style={styles.placeholderText}>
+                      When I <ThemedText style={styles.userInputText}>{habit.trigger}</ThemedText>
+                    </ThemedText>
+                    <ThemedText style={styles.placeholderText}>
+                      I will <ThemedText style={styles.userInputText}>{habit.action}</ThemedText>
+                    </ThemedText>
+                  </ThemedView>
+                ) : (
+                  <ThemedText style={styles.habitText}>{habit.habitName}</ThemedText>
+                )}
               </ThemedView>
             ))}
         </ThemedView>
       </ScrollView>
 
-      {/* Habit Detail Overlay */}
-      <Overlay 
-        isVisible={overlayVisible} 
-        onBackdropPress={toggleOverlay} 
-        overlayStyle={[styles.overlay]}
-      >
-        <ThemedView style={[styles.overlayContainer]}>
-          <ThemedText style={styles.overlayLabels}>Name</ThemedText>
-          <TextInput 
-            style={styles.overlayInput}
-            value={selectedHabit?.habitName || ''}
-            onChangeText={handleHabitNameChange}
-          />
+      <HabitModal
+        visible={overlayVisible}
+        onClose={toggleOverlay}
+        habit={selectedHabit || undefined}
+        trigger={trigger}
+        action={action}
+        selectedColour={selectedColour}
+        colourCodes={colourCodes}
+        setSelectedColour={setSelectedColour}
+        setTrigger={setTrigger}
+        setAction={setAction}
+        handleHabitNameChange={handleHabitNameChange}
+        handleHabitDescriptionChange={handleHabitDescriptionChange}
+        handleUpdateHabit={handleUpdateHabit}
+        handleDeleteHabit={handleDeleteHabit}
+      />
 
-          <ThemedText style={styles.overlayLabels}>Description</ThemedText>  
-          <TextInput 
-            style={styles.overlayDescriptionInput}
-            multiline={true}
-            value={selectedHabit?.description || ''}
-            onChangeText={handleHabitDescriptionChange}
-          />
-          <ThemedText style={styles.overlayLabels}>Colour</ThemedText>
-          <ScrollViewHabitColourCodes isSmall={true} selectedColour={selectedColour} onSelectColour={setSelectedColour} />
-          <ButtonCTA
-            title="Close"
-            onPress={handleUpdateHabit}
-          />
-        </ThemedView>
-      </Overlay>
+      <AddHabitModal visible={isAddHabitVisible} onClose={() => setIsAddHabitVisible(false)} />
 
-      {/* Bottom Navigation */}
+
       <BottomNav />
     </ThemedView>
   );
@@ -179,26 +249,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#F7F9FC',
   },
   header: {
+    height: 60,
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
+    justifyContent: 'center',
     backgroundColor: '#F7F9FC',
     position: 'relative',
-    marginTop: '10%',
+    marginTop: '15%',
+  },
+  addButton: {
+    position: 'absolute',
+    right: 20,
+    top: 10,
+    color: '#74B7E2',
   },
   headerText: {
     fontSize: 24,
     fontWeight: '600',
-    fontFamily: 'Comfortaa_400Regular',
+    fontFamily: 'Comfortaa_700Bold',
     textAlign: 'center',
-  },
-  addButton: {
-    position: 'absolute',
-    right: 35,
-    color: '#74B7E2',
-    fontSize: 45,
-    fontFamily: 'Comfortaa_400Regular',
   },
   progressContainer: {
     padding: 20,
@@ -249,38 +318,58 @@ const styles = StyleSheet.create({
     fontFamily: 'Comfortaa_400Regular',
     marginBottom: 10,
   },
-  overlay: {
-    borderRadius: 20,
-    width: '90%',
-    padding: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
+  placeholderText: {
+    fontSize: 18,
+    fontFamily: 'Comfortaa_700Bold',
+    color: '#000',
   },
-  overlayContainer: {
-    borderRadius: 15,
-    padding: 20,
-  },
-  overlayLabels: {
-    fontSize: 16,
+  userInputText: {
     fontWeight: '600',
-  },
-  overlayInput: {
-    backgroundColor: '#ccc',
-    padding: 10,
-    borderRadius: 10,
     fontSize: 16,
-    outlineWidth: 0,
+    color: '#000',
+    fontFamily: 'Comfortaa_400Regular',
   },
-  overlayDescriptionInput: {
-    backgroundColor: '#ccc',
-    padding: 10,
-    borderRadius: 10,
-    fontSize: 16,
-    minHeight: 80,
-    textAlignVertical: 'top',
+  habitInputContainer: {
+    marginTop: '5%',
+  },
+  colours: {
+    flexDirection: 'row',
+    height: 70,
     marginBottom: 20,
-    outlineWidth: 0,
+  },
+  colourCircle: {
+    borderRadius: 30,
+    height: 60,
+    width: 60,
+    margin: '1%',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '90%',
+  },
+  overlayHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  overlayHeaderText: {
+    fontSize: 18,
+    fontWeight: '600',
+    fontFamily: 'Comfortaa_700Bold',
+  },
+  subHeader: {
+    fontSize: 18,
+    marginBottom: '1%',
+    marginTop: '5%',
+    fontFamily: 'Comfortaa_700Bold',
   },
 });
