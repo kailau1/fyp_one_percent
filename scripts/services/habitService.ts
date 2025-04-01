@@ -12,6 +12,12 @@ export interface Habit {
     action?: string;
 
 }
+
+export interface HabitHistory {
+    date: string; 
+    completed: boolean;
+  }
+
 export const createHabit = async (
     userId: string,
     habitName: string,
@@ -216,3 +222,31 @@ export const updateHabit = async (
         return false;
     }
 };
+
+export const fetchHabitHistory = async (
+    habitId: string,
+    token: string
+  ): Promise<HabitHistory[]> => {
+    try {
+        const response = await fetch(`${BASE_URL}/api/habit-history/${habitId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+  
+        console.log('Response status:', response.status);
+  
+        if (!response.ok) {
+            throw new Error(await response.text());
+        }
+  
+        const data = await response.json();
+        console.log("Fetched habit history:", data);
+        return data;
+    } catch (err) {
+        console.error('Error fetching habit history:', err);
+        return [];
+    }
+  };

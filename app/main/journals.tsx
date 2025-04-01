@@ -16,14 +16,8 @@ import { useJournals } from '@/context/JournalsContext';
 import { useUser } from '@/context/UserContext';
 import { deleteJournalEntry } from '@/scripts/services/journalService';
 import { MaterialIcons } from '@expo/vector-icons';
+import { fetchJournalingPrompts } from '@/scripts/services/openaiService';
 
-const promptOptions = [
-  "What’s something you’re grateful for today?",
-  "Describe a recent challenge and how you handled it.",
-  "How do you feel right now? Why?",
-  "What’s one thing you’d like to improve this week?",
-  "Write a message to your future self.",
-];
 
 export default function JournalScreen() {
   const { journals, fetchJournals } = useJournals();
@@ -35,6 +29,8 @@ export default function JournalScreen() {
   const [optionsVisible, setOptionsVisible] = useState<string | null>(null);
   const [journalMode, setJournalMode] = useState<'blank' | 'prompt'>('blank');
   const { openModal, option, step } = useLocalSearchParams();
+  const [promptOptions, setPromptOptions] = useState<string[]>([]);
+  const [loadingPrompts, setLoadingPrompts] = useState(false);
 
 
   useEffect(() => {
@@ -60,6 +56,19 @@ export default function JournalScreen() {
     }
   };
 
+  const loadPrompts = async () => {
+    if (!user?.token) return;
+    setLoadingPrompts(true);
+    const { error, prompts } = await fetchJournalingPrompts(user.token);
+    setLoadingPrompts(false);
+
+    if (!error) {
+      setPromptOptions(prompts);
+    } else {
+      console.error('Error fetching prompts:', error);
+    }
+  };
+
   const openBlankJournal = () => {
     setSelectedJournalId(null);
     setJournalMode('blank');
@@ -71,6 +80,7 @@ export default function JournalScreen() {
     setJournalMode('prompt');
     setModalStep('picker');
     setIsModalVisible(true);
+    loadPrompts();
   };
 
   const closeModal = () => {
@@ -154,29 +164,40 @@ export default function JournalScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            {/* Prompt flow modal logic */}
             {journalMode === 'prompt' ? (
               modalStep === 'picker' ? (
-                <ScrollView>
-                  <ThemedText style={styles.promptHeader}>Choose a Prompt</ThemedText>
-                  {promptOptions.map((prompt, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={styles.promptCard}
-                      onPress={() => {
-                        setSelectedPrompt(prompt); 
-                        setModalStep('entry'); 
-                      }}
-                    >
-                      <ThemedText style={styles.promptText}>{prompt}</ThemedText>
+                <>
+                  <View style={styles.modalHeader}>
+                    <ThemedText style={styles.promptHeader}>Choose a Prompt</ThemedText>
+                    <TouchableOpacity onPress={closeModal}>
+                      <ThemedText style={styles.closeText}>Close</ThemedText>
                     </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                  </View>
+                  {loadingPrompts ? (
+                    <ThemedText style={{ textAlign: 'center', marginTop: 20 }}>Loading prompts...</ThemedText>
+                  ) : (
+                    <ScrollView>
+                      {promptOptions.map((prompt, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={styles.promptCard}
+                          onPress={() => {
+                            setSelectedPrompt(prompt);
+                            setModalStep('entry');
+                          }}
+                        >
+                          <ThemedText style={styles.promptText}>{prompt}</ThemedText>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  )}
+
+                </>
               ) : (
                 <JournalEntryScreen
                   onClose={closeModal}
                   journalId={selectedJournalId ?? null}
-                  initialContent={selectedPrompt || ''} 
+                  initialContent={selectedPrompt || ''}
                 />
               )
             ) : (
@@ -201,9 +222,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#F7F9FC',
 
   },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#DADADA',
+  },
   headerText: {
     fontSize: 24,
     fontWeight: '600',
+    fontFamily: 'Comfortaa_700Bold',
+  },
+  closeText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#8E44AD',
     fontFamily: 'Comfortaa_700Bold',
   },
   subHeader: {
@@ -238,10 +273,10 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'flex-end', // 👈 pushes modal to bottom
+    justifyContent: 'flex-end', 
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
-  
+
   modalContainer: {
     width: '100%',
     height: '90%',
