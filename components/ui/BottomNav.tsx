@@ -37,6 +37,7 @@ bottomNav: {
     justifyContent: 'space-around',
     alignItems: 'center',
     padding: 10,
+    paddingBottom: 20,
     position: 'absolute',
     bottom: 0,
     width: '100%',

@@ -19,7 +19,7 @@ import { fetchOpenAIResponse } from '@/scripts/services/openaiService';
 import { ThemedText } from '@/components/ThemedText';
 import ButtonCTA from '@/components/ui/ButtonCTA';
 import Divider from '@/components/ui/Divider';
-import Markdown from 'react-native-markdown-renderer';
+import Markdown from 'react-native-markdown-display';
 
 interface JournalEntryScreenProps {
   onClose: () => void;
@@ -33,7 +33,6 @@ export default function JournalEntryScreen({ onClose, journalId, initialContent 
   const [aiFeedback, setAiFeedback] = useState('');
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  // If there is no journalId then the text fields are automatically editable.
   const [isEditing, setIsEditing] = useState(journalId ? false : true);
   const { user } = useUser();
   const { journals, fetchJournals } = useJournals();
@@ -83,15 +82,25 @@ export default function JournalEntryScreen({ onClose, journalId, initialContent 
       alert("Write something before requesting AI feedback!");
       return;
     }
+  
     setLoading(true);
     setAiFeedback('');
+  
     try {
       if (!user) throw new Error("User is not logged in");
-      const response = await fetchOpenAIResponse(journalContent, user.token);
+  
+      const response = await fetchOpenAIResponse(
+        journalId ?? '',
+        journalContent,
+        user.id,
+        user.token, 
+      );
+  
       if (response.error) throw new Error(response.error);
+  
       setAiFeedback(response.response || 'No feedback available.');
-      // Open the modal to show feedback
       setShowFeedbackModal(true);
+  
     } catch (error) {
       console.error("Error fetching AI feedback:", error);
       setAiFeedback("Failed to get feedback. Please try again.");
@@ -100,6 +109,7 @@ export default function JournalEntryScreen({ onClose, journalId, initialContent 
       setLoading(false);
     }
   };
+  
 
   const markdownStyles = {
     text: {
@@ -128,7 +138,7 @@ export default function JournalEntryScreen({ onClose, journalId, initialContent 
               <ThemedText style={styles.completeText}>Done</ThemedText>
             </TouchableOpacity>
           </View>
-  
+
           <TextInput
             style={styles.textFieldTitle}
             placeholder="Title"
@@ -136,10 +146,9 @@ export default function JournalEntryScreen({ onClose, journalId, initialContent 
             editable={isEditing}
             onChangeText={setJournalTitle}
           />
-  
+
           <Divider />
-  
-          {/* Journal content is scrollable on its own */}
+
           <TextInput
             style={styles.textFieldContent}
             multiline
@@ -150,19 +159,17 @@ export default function JournalEntryScreen({ onClose, journalId, initialContent 
             textAlignVertical="top"
             scrollEnabled
           />
-  
+
           {loading && <ActivityIndicator size="large" color="#007AFF" style={styles.loading} />}
         </View>
-  
-        {/* Fixed footer */}
+
         <View style={styles.footer}>
           <ButtonCTA
             title={aiFeedback.trim() === '' ? 'Get Feedback' : 'View Feedback'}
             onPress={aiFeedback.trim() === '' ? getAiFeedback : () => setShowFeedbackModal(true)}
           />
         </View>
-  
-        {/* AI Feedback Modal */}
+
         <Modal
           animationType="slide"
           transparent={false}
@@ -246,7 +253,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'flex-end', 
+    justifyContent: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContainer: {

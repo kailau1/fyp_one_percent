@@ -1,5 +1,8 @@
+import Constants from 'expo-constants';
 
-import { BASE_URL } from "@env";
+const BASE_URL = Constants.expoConfig?.extra?.BASE_URL;
+
+
 
 export interface Habit {
     id: string;
@@ -8,15 +11,15 @@ export interface Habit {
     completed: boolean;
     colour: string;
     habitType: 'standard' | 'trigger-action';
-    trigger?: string; 
+    trigger?: string;
     action?: string;
 
 }
 
 export interface HabitHistory {
-    date: string; 
+    date: string;
     completed: boolean;
-  }
+}
 
 export const createHabit = async (
     userId: string,
@@ -32,7 +35,7 @@ export const createHabit = async (
     try {
         const requestOptions = {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
@@ -66,7 +69,7 @@ export const getUserHabits = async (
     try {
         const requestOptions = {
             method: 'GET',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
@@ -100,13 +103,13 @@ export const completeHabit = async (
     try {
         const requestOptions = {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
         };
 
-        const response = await fetch(`${BASE_URL}/api/habits/complete/${habitId}`, requestOptions);
+        const response = await fetch(`${BASE_URL}/api/habit-history/complete/${habitId}`, requestOptions);
 
         if (!response.ok) {
             const errorMessage = await response.text();
@@ -127,13 +130,13 @@ export const uncompleteHabit = async (
     try {
         const requestOptions = {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
         };
 
-        const response = await fetch(`${BASE_URL}/api/habits/uncomplete/${habitId}`, requestOptions);
+        const response = await fetch(`${BASE_URL}/api/habit-history/uncomplete/${habitId}`, requestOptions);
 
 
         if (!response.ok) {
@@ -151,49 +154,49 @@ export const uncompleteHabit = async (
 export const updateHabit = async (
     habit: Habit,
     token: string
-  ): Promise<Habit | null> => {
+): Promise<Habit | null> => {
     try {
-      console.log('updateHabit called with:', habit);
-  
-      const body = {
-        id: habit.id,
-        habitName: habit.habitName,
-        description: habit.description,
-        colour: habit.colour,
-        habitType: habit.habitType,
-        trigger: habit.trigger,
-        action: habit.action,
-      };
-  
-      const requestOptions = {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(body),
-      };
-  
-      console.log('Update body:', requestOptions.body);
-      const response = await fetch(`${BASE_URL}/api/habits/update`, requestOptions);
-  
-      if (!response.ok) {
-        const errorMessage = await response.text();
-        console.log('Update habit error:', errorMessage);
-        return null;
-      }
-  
-      const data = await response.json();
-      return data;
-  
-    } catch (error) {
-      console.error('updateHabit catch:', error);
-      return null;
-    }
-  };
-  
+        console.log('updateHabit called with:', habit);
 
-  export const deleteHabit = async (
+        const body = {
+            id: habit.id,
+            habitName: habit.habitName,
+            description: habit.description,
+            colour: habit.colour,
+            habitType: habit.habitType,
+            trigger: habit.trigger,
+            action: habit.action,
+        };
+
+        const requestOptions = {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(body),
+        };
+
+        console.log('Update body:', requestOptions.body);
+        const response = await fetch(`${BASE_URL}/api/habits/update`, requestOptions);
+
+        if (!response.ok) {
+            const errorMessage = await response.text();
+            console.log('Update habit error:', errorMessage);
+            return null;
+        }
+
+        const data = await response.json();
+        return data;
+
+    } catch (error) {
+        console.error('updateHabit catch:', error);
+        return null;
+    }
+};
+
+
+export const deleteHabit = async (
     habitId: string,
     token: string
 ): Promise<boolean> => {
@@ -226,7 +229,7 @@ export const updateHabit = async (
 export const fetchHabitHistory = async (
     habitId: string,
     token: string
-  ): Promise<HabitHistory[]> => {
+): Promise<HabitHistory[]> => {
     try {
         const response = await fetch(`${BASE_URL}/api/habit-history/${habitId}`, {
             method: 'GET',
@@ -235,13 +238,13 @@ export const fetchHabitHistory = async (
                 'Authorization': `Bearer ${token}`,
             },
         });
-  
+
         console.log('Response status:', response.status);
-  
+
         if (!response.ok) {
             throw new Error(await response.text());
         }
-  
+
         const data = await response.json();
         console.log("Fetched habit history:", data);
         return data;
@@ -249,4 +252,4 @@ export const fetchHabitHistory = async (
         console.error('Error fetching habit history:', err);
         return [];
     }
-  };
+};

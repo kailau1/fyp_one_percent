@@ -3,6 +3,7 @@
   "compilerOptions": {
     "module": "ESNext",
     "strict": true,
+    "types": ["react-native-dotenv"],
     "paths": {
       "@/*": [
         "./*"
@@ -12,6 +13,7 @@
   },
   "include": [
     "app/**/*.ts",
-    "app/**/*.tsx"
+    "app/**/*.tsx",
+    "src", "src/types"
   ]
 }

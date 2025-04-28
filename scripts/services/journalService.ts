@@ -1,4 +1,6 @@
-import { BASE_URL } from '@env';
+import Constants from 'expo-constants';
+
+const BASE_URL = Constants.expoConfig?.extra?.BASE_URL;
 
 export interface Journal {
     id: string,
@@ -16,14 +18,14 @@ export const createJournal = async (
     try {
         const requestOptions = {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ title, content, llmResponse })
         };
 
-        console.log("Request Options:", requestOptions); // Debugging step
+        console.log("Request Options:", requestOptions);
         const response = await fetch(`${BASE_URL}/api/journals`, requestOptions);
 
         if (!response.ok) {
@@ -52,7 +54,7 @@ export const getUserJournals = async (
     try {
         const requestOptions = {
             method: 'GET',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
@@ -84,7 +86,7 @@ export const deleteJournalEntry = async (
     try {
         const requestOptions = {
             method: 'DELETE',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
@@ -111,10 +113,10 @@ export const getJournalEntry = async (
     try {
         const requestOptions = {
             method: 'GET',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
-            }, 
+            },
         };
 
         const response = await fetch(`${BASE_URL}/api/journals/${journalId}`, requestOptions)
@@ -124,12 +126,12 @@ export const getJournalEntry = async (
             const errorMessage = await response.text();
             console.log('getUserJournals error: ', errorMessage);
         }
-        
+
         const data = await response.json();
         console.log('getUserJournals data:', data);
 
         return data;
-        
+
     } catch (error) {
         console.log('Error', 'Something went wrong. Please try again');
         return null
@@ -146,11 +148,11 @@ export const updateJournalEntry = async (
     try {
         const requestOptions = {
             method: 'PUT',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ id, title, content, llmResponse}),
+            body: JSON.stringify({ id, title, content, llmResponse }),
         };
 
         console.log('updateJournalEntry requestOptions:', requestOptions.body);

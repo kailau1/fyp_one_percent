@@ -13,7 +13,7 @@ import InputField from '@/components/InputField';
 interface HabitModalProps {
     visible: boolean;
     onClose: () => void;
-    onViewHistory: () => void; 
+    onViewHistory: () => void;
     habit?: {
         habitName?: string;
         description?: string;

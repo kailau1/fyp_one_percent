@@ -4,14 +4,16 @@ import { User } from '@/context/UserContext';
 import { jwtDecode } from 'jwt-decode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { BASE_URL } from '@env';
+import Constants from 'expo-constants';
+
+const BASE_URL = Constants.expoConfig?.extra?.BASE_URL;
 
 export const createUser = async (
     email: string,
     firstName: string,
     lastName: string,
     password: string,
-    router: Router, 
+    router: Router,
     setLoading: (loading: boolean) => void,
     setUser: (user: User | null) => void
 ): Promise<void> => {
@@ -23,8 +25,8 @@ export const createUser = async (
             body: JSON.stringify({ email, firstName, lastName, password }),
         };
 
-        console.log("URL:", `${BASE_URL}/api/users/create`);
-        const response = await fetch(`${BASE_URL}/api/users/create`, requestOptions);
+        console.log("URL:", `${BASE_URL}/api/users/register`);
+        const response = await fetch(`${BASE_URL}/api/users/register`, requestOptions);
 
         if (!response.ok) {
             const errorMessage = await response.text();
@@ -44,8 +46,9 @@ export const createUser = async (
 };
 
 export const loginUser = async (email: string, password: string) => {
-    
+
     try {
+        console.log("URL:", `${BASE_URL}/api/users/login`);
         const response = await fetch(`${BASE_URL}/api/users/login`, {
             method: "POST",
             headers: {
@@ -60,7 +63,7 @@ export const loginUser = async (email: string, password: string) => {
 
         const data = await response.json();
         const token = data.token;
-        
+
         interface DecodedToken {
             id: string;
             userId: string;

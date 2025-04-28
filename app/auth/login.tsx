@@ -36,7 +36,7 @@ export default function LoginScreen() {
     try {
       const loggedInUser = await loginUser(email, password);
       setUser(loggedInUser);
-      router.push('/main/dashboard'); 
+      router.push('/main/dashboard');
     } catch (error) {
       const errorMsg = 'Login failed. Please try again.';
       setErrorMessage(errorMsg);

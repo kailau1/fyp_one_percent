@@ -41,6 +41,8 @@ export default function JournalScreen() {
         openPromptJournal();
       }
     }
+    return () => {
+    };
   }, [openModal, option, step]);
 
 
@@ -59,11 +61,12 @@ export default function JournalScreen() {
   const loadPrompts = async () => {
     if (!user?.token) return;
     setLoadingPrompts(true);
-    const { error, prompts } = await fetchJournalingPrompts(user.token);
+    const { error, prompts } = await fetchJournalingPrompts(user.token, user.id);
     setLoadingPrompts(false);
 
     if (!error) {
-      setPromptOptions(prompts);
+      const promptArray = prompts.filter(p => p.trim() !== '');
+      setPromptOptions(promptArray);
     } else {
       console.error('Error fetching prompts:', error);
     }
@@ -76,11 +79,13 @@ export default function JournalScreen() {
   };
 
   const openPromptJournal = () => {
-    setSelectedJournalId(null);
-    setJournalMode('prompt');
-    setModalStep('picker');
-    setIsModalVisible(true);
-    loadPrompts();
+    if (!isModalVisible) {
+      setSelectedJournalId(null);
+      setJournalMode('prompt');
+      setModalStep('picker');
+      setIsModalVisible(true);
+      loadPrompts();
+    }
   };
 
   const closeModal = () => {
@@ -116,7 +121,7 @@ export default function JournalScreen() {
         {[...journals]
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           .map((entry) => (
-            <View key={entry.id}>
+            <View key={entry.id} >
               <TouchableOpacity
                 style={styles.card}
                 onPress={() => {
@@ -174,9 +179,9 @@ export default function JournalScreen() {
                     </TouchableOpacity>
                   </View>
                   {loadingPrompts ? (
-                    <ThemedText style={{ textAlign: 'center', marginTop: 20 }}>Loading prompts...</ThemedText>
+                    <ThemedText style={{ textAlign: 'center', marginTop: 10 }}>Loading prompts...</ThemedText>
                   ) : (
-                    <ScrollView>
+                    <ScrollView style={{ marginTop: 10 }}>
                       {promptOptions.map((prompt, index) => (
                         <TouchableOpacity
                           key={index}
@@ -212,7 +217,11 @@ export default function JournalScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F7F9FC' },
-  scrollViewContent: { flexGrow: 1, padding: '3%', marginBottom: '25%' },
+  scrollViewContent: {
+    padding: '3%',
+    paddingBottom: 100,
+    minHeight: '80%',
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -273,7 +282,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'flex-end', 
+    justifyContent: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
 

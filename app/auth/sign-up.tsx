@@ -41,28 +41,28 @@ const SignUpScreen: React.FC = () => {
     return (
         <ThemedView style={styles.container}>
             <Header title="Enter Your Details" onBackPress={() => router.back()} iconColour={iconColour} />
-                <InputFieldIcon
-                    placeholder="Enter your email"
-                    icon="mail"
-                    onChangeText={newText => setEmail(newText)}
-                />
-                <InputFieldIcon
-                    placeholder="Password"
-                    icon="key"
-                    secureTextEntry={true}
-                    onChangeText={newText => setPassword(newText)}
-                />
+            <InputFieldIcon
+                placeholder="Enter your email"
+                icon="mail"
+                onChangeText={newText => setEmail(newText)}
+            />
+            <InputFieldIcon
+                placeholder="Password"
+                icon="key"
+                secureTextEntry={true}
+                onChangeText={newText => setPassword(newText)}
+            />
             <View style={styles.doubleTextFieldContainer}>
-                    <InputFieldIcon
-                        placeholder="First Name"
-                        onChangeText={newText => setFirstName(newText)}
-                        isSmall={true}
-                    />
-                    <InputFieldIcon
-                        placeholder="Last Name"
-                        onChangeText={newText => setLastName(newText)}
-                        isSmall={true}
-                    />
+                <InputFieldIcon
+                    placeholder="First Name"
+                    onChangeText={newText => setFirstName(newText)}
+                    isSmall={true}
+                />
+                <InputFieldIcon
+                    placeholder="Last Name"
+                    onChangeText={newText => setLastName(newText)}
+                    isSmall={true}
+                />
             </View>
             <ThemedView style={styles.errorContainer}>
                 {errors.email && <Text style={styles.errorText}>* {errors.email}</Text>}
@@ -80,7 +80,7 @@ const SignUpScreen: React.FC = () => {
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'column',
-        alignItems: 'center', 
+        alignItems: 'center',
         padding: 10,
         position: 'relative',
         height: '100%',

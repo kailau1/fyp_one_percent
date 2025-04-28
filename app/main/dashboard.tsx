@@ -13,8 +13,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
 
-
-
 export default function DashboardScreen() {
   const { habits } = useHabits();
   const router = useRouter();
@@ -29,7 +27,7 @@ export default function DashboardScreen() {
       try {
         const cachedTip = await AsyncStorage.getItem('tipOfTheDay');
         const cachedDate = await AsyncStorage.getItem('tipOfTheDayDate');
-        const today = new Date().toISOString().split('T')[0]; 
+        const today = new Date().toISOString().split('T')[0];
         if (cachedTip && cachedDate === today) {
           setTip(cachedTip);
         } else {
@@ -45,14 +43,14 @@ export default function DashboardScreen() {
               await AsyncStorage.setItem('tipOfTheDayDate', today);
             }
           }
-          
+
         }
       } catch (err) {
         setTipError('Error loading tip.');
         console.error('Tip cache error:', err);
       }
     };
-  
+
     getCachedTip();
   }, [user?.token]);
 
@@ -93,29 +91,22 @@ export default function DashboardScreen() {
               <ThemedView key={habit.id} style={{ marginBottom: 10, backgroundColor: '#E4EAF2' }}>
                 {habit.habitType === 'trigger-action' ? (
                   <ThemedView style={{ backgroundColor: habit.colour, borderRadius: 15, padding: 10 }}>
-                  
-                    <ThemedText style={[styles.cardContent, {backgroundColor: habit.colour}]}>
+
+                    <ThemedText style={[styles.cardContent, { backgroundColor: habit.colour }]}>
                       When I <ThemedText style={{ fontFamily: 'Comfortaa_400Regular', backgroundColor: habit.colour }}>{habit.trigger}</ThemedText>
                     </ThemedText>
-                    <ThemedText style={[styles.cardContent, {backgroundColor: habit.colour, }]}>
+                    <ThemedText style={[styles.cardContent, { backgroundColor: habit.colour, }]}>
                       I will <ThemedText style={{ fontFamily: 'Comfortaa_400Regular', backgroundColor: habit.colour }}>{habit.action}</ThemedText>
                     </ThemedText>
                   </ThemedView>
                 ) : (
                   <ThemedView style={{ backgroundColor: habit.colour, borderRadius: 15, padding: 10 }}>
-                    <ThemedText style={[styles.cardContentStandard, {backgroundColor: habit.colour}]}>{habit.habitName}</ThemedText>
+                    <ThemedText style={[styles.cardContentStandard, { backgroundColor: habit.colour }]}>{habit.habitName}</ThemedText>
                   </ThemedView>
                 )}
               </ThemedView>
             ))
           )}
-        </ThemedView>
-        <ThemedView style={styles.card}>
-          <ThemedText style={styles.cardTitle}>Progress Overview</ThemedText>
-          <ThemedView style={styles.progressContainer}>
-            <ThemedText style={styles.progressText}>Today's Progress</ThemedText>
-            <ThemedText style={styles.progressPercentage}>75%</ThemedText>
-          </ThemedView>
         </ThemedView>
       </ScrollView>
       <BottomNav />
@@ -171,10 +162,8 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     fontSize: 18,
-    marginBottom: 5,
     fontFamily: 'Comfortaa_700Bold',
     backgroundColor: '#E4EAF2',
-    padding: 5,
   },
   cardContentStandard: {
     fontSize: 18,

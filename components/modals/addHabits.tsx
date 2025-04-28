@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, Text, View } from 'react-native';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import InputField from '@/components/InputField';
-import { useUser } from '@/context/UserContext';
-import Header from '@/components/Header-Sub';
+import { ThemedText } from '../ThemedText';
+import { ThemedView } from '../ThemedView';
+import InputField from '../InputField';
+import { useUser } from '../../context/UserContext';
+import Header from '../Header-Sub';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from 'react-native';
-import ButtonCTA from '@/components/ui/ButtonCTA';
-import { useHabits } from '@/context/HabitsContext';
-import { createHabit } from '@/scripts/services/habitService';
+import ButtonCTA from '../ui/ButtonCTA';
+import { useHabits } from '../../context/HabitsContext';
+import { createHabit } from '../../scripts/services/habitService';
 
 export default function AddHabitsScreen() {
   const { user } = useUser();
@@ -67,8 +67,8 @@ export default function AddHabitsScreen() {
     
       const newHabit = await createHabit(
         user.id,
-        '', // No title needed
-        '', // No description
+        '', 
+        '', 
         false,
         selectedColor,
         user.token,

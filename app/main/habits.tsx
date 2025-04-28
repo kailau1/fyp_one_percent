@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import Divider from '@/components/ui/Divider';
 import { Feather } from '@expo/vector-icons';
 import HabitModal from '@/components/modals/HabitModal';
-import AddHabitModal from '@/components/modals/AddHabitModal'; 
+import AddHabitModal from '@/components/modals/AddHabitModal';
 import HabitHistoryModal from '@/components/modals/HabitHistoryModal';
 
 export default function HabitsScreen() {
@@ -23,7 +23,7 @@ export default function HabitsScreen() {
   const [selectedColour, setSelectedColour] = useState<string>('');
   const [trigger, setTrigger] = useState('');
   const [action, setAction] = useState('');
-  const [isAddHabitVisible, setIsAddHabitVisible] = useState(false); 
+  const [isAddHabitVisible, setIsAddHabitVisible] = useState(false);
   const [historyModalVisible, setHistoryModalVisible] = useState(false);
   const colourCodes: string[] = ["#A7C7E7", "#B4E197", "#F8C8DC", "#D6A4E7", "#FDFD96", "#FFD1A9", "#AAF0D1", "#E3D4FC", "#FCA3B7", "#AEEDEE"];
 
@@ -137,8 +137,8 @@ export default function HabitsScreen() {
   };
 
   const handleViewHistory = () => {
-    setOverlayVisible(false); 
-    setHistoryModalVisible(true);  
+    setOverlayVisible(false);
+    setHistoryModalVisible(true);
   };
 
   const completedCount = habits ? habits.filter((habit) => habit.completed).length : 0;
@@ -219,35 +219,35 @@ export default function HabitsScreen() {
             ))}
         </ThemedView>
       </ScrollView>
-      
+
       <HabitModal
-          visible={overlayVisible}
-          onClose={toggleOverlay}
-          onViewHistory={handleViewHistory}
-          habit={selectedHabit || undefined}
-          trigger={trigger}
-          action={action}
-          selectedColour={selectedColour}
-          colourCodes={colourCodes}
-          setSelectedColour={setSelectedColour}
-          setTrigger={setTrigger}
-          setAction={setAction}
-          handleHabitNameChange={handleHabitNameChange}
-          handleHabitDescriptionChange={handleHabitDescriptionChange}
-          handleUpdateHabit={handleUpdateHabit}
-          handleDeleteHabit={handleDeleteHabit}          
+        visible={overlayVisible}
+        onClose={toggleOverlay}
+        onViewHistory={handleViewHistory}
+        habit={selectedHabit || undefined}
+        trigger={trigger}
+        action={action}
+        selectedColour={selectedColour}
+        colourCodes={colourCodes}
+        setSelectedColour={setSelectedColour}
+        setTrigger={setTrigger}
+        setAction={setAction}
+        handleHabitNameChange={handleHabitNameChange}
+        handleHabitDescriptionChange={handleHabitDescriptionChange}
+        handleUpdateHabit={handleUpdateHabit}
+        handleDeleteHabit={handleDeleteHabit}
       />
 
-      <AddHabitModal 
-          visible={isAddHabitVisible} 
-          onClose={() => setIsAddHabitVisible(false)} 
+      <AddHabitModal
+        visible={isAddHabitVisible}
+        onClose={() => setIsAddHabitVisible(false)}
       />
 
       <HabitHistoryModal
-          visible={historyModalVisible}
-          onClose={() => setHistoryModalVisible(false)}
-          habitId={selectedHabit?.id || ''}
-          token={user?.token || ''}
+        visible={historyModalVisible}
+        onClose={() => setHistoryModalVisible(false)}
+        habitId={selectedHabit?.id || ''}
+        token={user?.token || ''}
       />
 
       <BottomNav />
