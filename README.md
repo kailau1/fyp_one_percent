@@ -1,41 +1,75 @@
-# Welcome to your Expo app 👋
+# One Percent - React Native Frontend (University Final Year Project)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This repository contains the React Native frontend for *One Percent*, a self-development app built to support habit tracking and reflective journaling, with personalised feebdack powered by a Large Language Model (LLM).
 
-## Get started
+## Features 
 
-1. Install dependencies
+- Secure user login and registration
+- Journal entry creation with AI-generated feedback
+- Prompt selection using embedding-based context
+- Habit creation, streak tracking, and completion history
+- Local session persistence using AsyncStorage
+- Clean and responsive UI built with Expo and React Native
 
-   ```bash
-   npm install
-   ```
+## Technologies Used
 
-2. Start the app
+- React Native (with Expo)
+- JavaScript / TypeScript
+- Context API
+- AsyncStorage
+- Expo Router
 
-   ```bash
-    npx expo start
-   ```
+## Project Structure
 
-In the output, you'll find options to open the app in a
+- `app/` – All screens and routing logic
+- `contexts/` – Global state management (user, habits, journals)
+- `services/` – API service wrappers
+- `components/` – Reusable UI components
+- `utils/` – Helper functions
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Getting Started
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Prerequisites
+
+- Node.js
+- Expo CLI
+
+### Running the App
+
+1. Clone the repository:
+
+```
+git clone https://github.com/kailau1/fyp_one_percent
+cd fyp_one_percent
+```
+
+2. Install dependencies:
+
+```
+npm install
+```
+
+3. Start the development server:
+
+```
+npx expo start -- --tunnel
+```
+> Make sure the [Spring Boot backend](https://github.com/kailau1/fyp_one_percent_spring) is running locally and reachable from your device.
+
+The backend will run on your local network ipv4 address:
+
+In windows powershell / temrinal run
+
+```
+ipconfig
+```
+
+Copy your ipv4 address and paste it into the "BASE_URL" field within one_percent/app.json
 
 
-## Learn more
+4. Scan the QR code with the Expo Go app or open it in an emulator.
 
-To learn more about developing your project with Expo, look at the following resources:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Related Repositories
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- [Backend (Spring Boot)](https://github.com/kailau1/fyp_one_percent_spring)
